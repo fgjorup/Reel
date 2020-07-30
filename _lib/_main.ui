@@ -92,6 +92,7 @@
   <action name="actionUpdate">
    <property name="icon">
     <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/icons/Update.png</normaloff>:/icons/Update.png</iconset>
    </property>
    <property name="text">
@@ -101,6 +102,7 @@
   <action name="actionOpen_xyy">
    <property name="icon">
     <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/icons/OpenFile.png</normaloff>:/icons/OpenFile.png</iconset>
    </property>
    <property name="text">
