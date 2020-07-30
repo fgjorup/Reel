@@ -107,22 +107,36 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         if len(labels)>0:
             self.nextRow()
 
+    def getHorizontalLineVal(self):
+        return self.hlines[0].value()
+        
 class PlotPatternWidget(pg.PlotWidget):
     
     def __init__(self):
         pg.PlotWidget.__init__(self)
         
+        #Set Background color to white
+        #self.setBackground('w')
         
-        labels=(('Observed','r'),('Calculated','w'),('Residual','b'))
+        self.setLabel('left','Intensity (a.u.)')
+        self.setLabel('bottom','2θ (°)')
         self.addLegend()
+        self.setLimits(xMin=0, xMax=180,
+                       yMin=0)
         #Add plots
-        self.pobs  = self.plot(x=[0],y=[0], name='Observed', pen=None, symbol='o', symbolPen='r', symbolSize=2)
-        self.pcalc = self.plot(x=[0],y=[0], name='Calculated')
-        self.pres  = self.plot(x=[0],y=[0], name='Residual', pen=pg.mkPen(color='b', width=0.5))
-
-    def setData(self):
-         
-         
+        self.pobs = self.plot(x=[0],y=[0], name='Observed', pen=None, symbol='o', symbolPen='r', symbolSize=2)
+        self.pcal = self.plot(x=[0],y=[0], name='Calculated')
+        self.pres = self.plot(x=[0],y=[0], name='Residual', pen=pg.mkPen(color='b', width=0.5))
+        
+        
+    def setObsData(self,x,y):
+         self.pobs.setData(x,y)
+    
+    def setCalData(self,x,y):
+         self.pcal.setData(x,y)    
+        
+    def setResData(self,x,y):
+         self.pres.setData(x,y)
 
 class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirname(__file__), '_lib/_main.ui'))[0]):
     def __init__(self):
@@ -140,8 +154,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.verticalLayout_surf.insertWidget(0, self.miw)
         self.verticalLayout_pat.insertWidget(0, self.pw1)
         self.verticalLayout_par.insertWidget(0, self.pw2)
-
         
+        self.miw.hlines[i].sigDragged.connect(self.updatePatternPlot)
+        
+        
+    def updatePatternPlot(self):
+        print(self.miw.getHorizontalLineVal())        
+
+
 
 ####################################################################################################
 ##                                   Read data methods                                            ##
