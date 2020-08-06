@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Refinement Evaluator</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/icons/Main.png</normaloff>:/icons/Main.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="1" column="0">
