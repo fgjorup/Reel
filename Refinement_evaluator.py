@@ -32,10 +32,26 @@ def findFiles(path,extension='.dat'):
     files.sort()
     return files
 
-def readXYY():
+def AUcolors(exclude=()):
+    """Return AU standard colors (light).
+    Available colors: 'blue', 'purple', 'cyan', 'turquoise', 'green', 'yellow', 'orange', 'red', 'magenta', and 'gray'.
     
-
-    return
+    Keyword arguments:
+    exclude -- tuple of strings (default empty)
+    """
+    AU_colors = {'blue'     :(  0, 61,115),
+                 'purple'   :(101, 90,159),
+                 'cyan'     :( 55,160,203),
+                 'turquoise':(  0,171,164),
+                 'green'    :(139,173, 63),
+                 'yellow'   :(250,187,  0),
+                 'orange'   :(238,127,  0),
+                 'red'      :(226,  0, 26),
+                 'magenta'  :(226,  0,122),
+                 'gray'     :(135,135,135)}
+    for ex in exclude:
+        AU_colors.pop(ex)
+    return AU_colors
 
 class MultiImageWidget(pg.GraphicsLayoutWidget):
     
@@ -96,6 +112,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         
         self.hist_2.setImageItem(self.images[-1])
         self.hist_2.sigLevelsChanged.connect(self._setDivergentLevels)
+        
         
     def _update_hline(self):
         v_new = [v.value() for v in self.hlines if not round(v.value(),2) in self._v_old]
@@ -160,6 +177,25 @@ class PlotPatternWidget(pg.PlotWidget):
         self.pcal = self.plot(x=[0],y=[0], name='Calculated')
         self.pres = self.plot(x=[0],y=[0], name='Residual', pen=pg.mkPen(color='b', width=0.5))
         
+        self.psub = {}
+    
+        self.colors = AUcolors(exclude=('blue','red','gray'))
+        
+    def addSubplot(self,key=None):
+        try:
+            color = self.colors.popitem()[1]
+        except KeyError:
+            color = AUcolors(exclude=('blue','red','gray'))
+        pen = pg.mkPen(color=color, style=QtCore.Qt.DashLine)
+        self.psub[key]=self.plot(x=[0],y=[0], name=key, pen=pen)
+
+    def removeSubplots(self):
+        for item in self.psub.values():
+            self.removeItem(item)
+        self.colors = AUcolors(exclude=('blue','red','gray'))
+        
+    def setSubplotData(self,key,x,y):    
+        self.psub[key].setData(x,y)
         
     def setObsData(self,x,y):
          self.pobs.setData(x,y)
@@ -227,6 +263,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
         self.files=[]
         self.temp=[]
+        self.sub_plots={}
+        
     def updatePatternPlot(self):
         h_val = self.miw.getHorizontalLineVal()
         pos = int(np.clip(round(h_val),0,self.im.shape[2]-1))
@@ -239,6 +277,9 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.ppw.setObsData(self.tth,self.im[0,:,pos])
         self.ppw.setCalData(self.tth,self.im[1,:,pos])
         self.ppw.setResData(self.tth,self.im[2,:,pos])
+        for key in self.sub_plots:
+            self.ppw.setSubplotData(key,self.tth,self.sub_plots[key][pos,:])
+        
         if len(self.temp)>0:
             self.parw.setTempData(np.arange(1,self.im.shape[2]+1,1,dtype=float),self.temp)
         self.parw.updateVline(len(self.temp)-h_val+0.5)
@@ -247,6 +288,10 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         val = len(self.temp)-self.parw.vline.value()
         self.miw.hlines[0].setValue(val+0.5)
         self.miw._update_hline()
+        
+    def removeSubplots(self):
+        self.sub_plots={}
+        self.ppw.removeSubplots()
 ####################################################################################################
 ##                                   Read data methods                                            ##
 ####################################################################################################
@@ -263,6 +308,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.im = im
             self.tth = tth
             self.setMultiImages(tth,self.im)
+            self.removeSubplots()
             self.updatePatternPlot()
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .csv file!\nFile: '+path)    
@@ -308,6 +354,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 self.temp = np.array(temp,dtype=float)
             progress.setValue(len(files))
             self.setMultiImages(tth,im)
+            self.removeSubplots()
             self.updatePatternPlot()
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .prf files!\npath: '+path)    
@@ -349,8 +396,27 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xyy files', path , '*.xyy')
         if files[0].endswith('.xyy'):
             progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator') #,QtGui.QIcon(":icons/MainIcon.png"))
-            im =[[],[],[]]
-            temp=[]
+            im = [[],[],[]]
+            bgr = []
+            sub_plots = {}
+            temp = []
+            for i, file in enumerate(files):
+                progress.setValue(i)
+                header, data = self.readXYY(file)
+                tth = data.pop('tth')
+                im[0].append(data.pop('Y_obs'))
+                im[1].append(data.pop('Y_calc'))
+                im[2].append(data.pop('Y_res'))
+                bgr.append(data.pop('Background'))
+                for key in data:
+                    try:
+                        sub_plots[key].append(data[key])
+                    except KeyError:
+                        sub_plots[key]=[data[key]]
+                temp.append(header['Temperature (K)'])
+                if progress.wasCanceled():
+                    break
+            """
             for i, file in enumerate(files):
                 progress.setValue(i)
                 header, data = self.readXYY(file)
@@ -361,14 +427,19 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 temp.append(header['Temperature (K)'])
                 if progress.wasCanceled():
                     break
+            """
             im = np.array(im)
             im = np.rot90(im,k=-1,axes=(1,2))
             self.im = im 
             self.tth = tth
             self.files = [f.split('/')[-1][:-4] for f in files]
             self.temp = np.array(temp,dtype=float)
+            self.removeSubplots()
+            self.sub_plots = {key:np.array(sub_plots[key]) for key in sub_plots}
             progress.setValue(len(files))
             self.setMultiImages(tth,im)
+            for key in sub_plots:
+                self.ppw.addSubplot(key=key)
             self.updatePatternPlot()
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .xyy files!\npath: '+path)    
