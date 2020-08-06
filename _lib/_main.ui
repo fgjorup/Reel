@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1193</width>
+    <height>794</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,18 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Diffraction pattern</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout_pat"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="0" column="0" colspan="2">
      <widget class="QGroupBox" name="groupBox_surf">
       <property name="sizePolicy">
@@ -45,18 +57,6 @@
       </layout>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QGroupBox" name="groupBox">
-      <property name="title">
-       <string>Diffraction pattern</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0">
-        <layout class="QVBoxLayout" name="verticalLayout_pat"/>
-       </item>
-      </layout>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -64,7 +64,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1193</width>
      <height>21</height>
     </rect>
    </property>
@@ -80,7 +80,7 @@
      <addaction name="action_OpenDAT"/>
      <addaction name="action_OpenPRF"/>
      <addaction name="action_xye"/>
-     <addaction name="action_OpenXXY"/>
+     <addaction name="action_OpenXYY"/>
     </widget>
     <addaction name="menuOpen_csv"/>
     <addaction name="separator"/>
@@ -91,7 +91,6 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionUpdate">
    <property name="icon">
-    <iconset>
     <iconset resource="icons.qrc">
      <normaloff>:/icons/Update.png</normaloff>:/icons/Update.png</iconset>
    </property>
@@ -101,7 +100,6 @@
   </action>
   <action name="actionOpen_xyy">
    <property name="icon">
-    <iconset>
     <iconset resource="icons.qrc">
      <normaloff>:/icons/OpenFile.png</normaloff>:/icons/OpenFile.png</iconset>
    </property>
@@ -114,7 +112,7 @@
     <string>*.csv</string>
    </property>
   </action>
-  <action name="action_OpenXXY">
+  <action name="action_OpenXYY">
    <property name="text">
     <string>*.xyy</string>
    </property>
