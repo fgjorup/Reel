@@ -218,7 +218,7 @@ class PlotParametersWidget(pg.PlotWidget):
         
         #Set Background color to white
         #self.setBackground('w')
-        self.setLabel('left','Temperature',units='K')
+        self.setLabel('left','Temperature (K)')
         self.setLabel('bottom','Frame (#)')
         self.addLegend()
         self.setLimits(xMin=0, xMax=10000,
