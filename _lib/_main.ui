@@ -11,11 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Refinement Evaluator</string>
+   <string>Reel</string>
   </property>
   <property name="windowIcon">
    <iconset resource="icons.qrc">
     <normaloff>:/icons/Main.png</normaloff>:/icons/Main.png</iconset>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <property name="statusTip">
+   <string/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -76,9 +82,13 @@
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuOpen_csv">
+    <widget class="QMenu" name="menuOpen">
      <property name="title">
       <string>Open</string>
+     </property>
+     <property name="icon">
+      <iconset resource="icons.qrc">
+       <normaloff>:/icons/OpenFile.png</normaloff>:/icons/OpenFile.png</iconset>
      </property>
      <addaction name="action_OpenCSV"/>
      <addaction name="action_OpenDAT"/>
@@ -86,11 +96,18 @@
      <addaction name="action_xye"/>
      <addaction name="action_OpenXYY"/>
     </widget>
-    <addaction name="menuOpen_csv"/>
+    <addaction name="menuOpen"/>
     <addaction name="separator"/>
     <addaction name="actionUpdate"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionUpdate">
@@ -127,13 +144,24 @@
    </property>
   </action>
   <action name="action_OpenDAT">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>*.dat</string>
    </property>
   </action>
   <action name="action_xye">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>*.xye</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

@@ -246,10 +246,12 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         super(mainWindow, self).__init__()
         self.setupUi(self)
         
+        self.actionUpdate.triggered.connect(self.updateFiles)
         self.action_OpenCSV.triggered.connect(self.openCSV)
         self.action_OpenPRF.triggered.connect(self.openPRF)
         self.action_OpenXYY.triggered.connect(self.openXYY)
-
+        self.actionAbout.triggered.connect(self.aboutBox)
+        
         ###Canvas###
         self.miw = MultiImageWidget(n_images=3,labels=('Observed','Calculated','Scale','Residual','Scale'))
         self.ppw = PlotPatternWidget()
@@ -265,6 +267,18 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.temp=[]
         self.sub_plots={}
         
+    def updateFiles(self):
+        files = self.files
+        if files[0].endswith('.prf'):
+            self.openPRF(files)
+        elif files[0].endswith('.xyy'):
+            self.openXYY(files)
+        return
+    
+    def aboutBox(self):
+        text = '<html><head/><body><p align="center"><span style=" font-weight:600;">Refinement Evaluator</span></p><p align="center">by Frederik H Gjørup</p><p align="center">August 2020</p></body></html>'
+        QtWidgets.QMessageBox.about(self,'About',text)
+        
     def updatePatternPlot(self):
         h_val = self.miw.getHorizontalLineVal()
         pos = int(np.clip(round(h_val),0,self.im.shape[2]-1))
@@ -272,7 +286,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         if self.files:
             if len(self.temp)>0:
                 temp = ' - Temperature: {:.0f} K'.format(self.temp[-(pos+1)])
-            title = '{}{}'.format(self.files[-(pos+1)],temp)
+            title = '{}{}'.format(self.files[-(pos+1)].split('/')[-1][:-4],temp)
             self.ppw.setTitle(title)
         self.ppw.setObsData(self.tth,self.im[0,:,pos])
         self.ppw.setCalData(self.tth,self.im[1,:,pos])
@@ -324,11 +338,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         im = np.rot90(im,k=-1)
         return tth, im
     
-    def openPRF(self):
-        path = ''
-        if not path:
-            path = QtCore.QDir.currentPath() 
-        files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .prf files', path , '*.prf')
+    def openPRF(self,files=None):
+        if not isinstance(files,list):
+            path = ''
+            if not path:
+                path = QtCore.QDir.currentPath() 
+            files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .prf files', path , '*.prf')
+        else:
+            path = '/'.join(files[0].split('/')[:-1])
         if files[0].endswith('.prf'):
             progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator') #,QtGui.QIcon(":icons/MainIcon.png"))
             im =[[],[],[]]
@@ -349,7 +366,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             im = np.rot90(im,k=-1,axes=(1,2))
             self.im = im 
             self.tth = tth
-            self.files = [f.split('/')[-1][:-4] for f in files]
+            self.files =  files
             if not None in temp:
                 self.temp = np.array(temp,dtype=float)
             progress.setValue(len(files))
@@ -389,11 +406,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         excl_reg = excl_reg==False
         return(tth, yobs, ycal, res, bckg, temp, excl_reg)
 
-    def openXYY(self):
-        path = ''
-        if not path:
-            path = QtCore.QDir.currentPath() 
-        files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xyy files', path , '*.xyy')
+    def openXYY(self,files=None):
+        if not isinstance(files,list):
+            path = ''
+            if not path:
+                path = QtCore.QDir.currentPath() 
+            files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xyy files', path , '*.xyy')
+        else:
+            path = '/'.join(files[0].split('/')[:-1])
         if files[0].endswith('.xyy'):
             progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator') #,QtGui.QIcon(":icons/MainIcon.png"))
             im = [[],[],[]]
@@ -432,7 +452,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             im = np.rot90(im,k=-1,axes=(1,2))
             self.im = im 
             self.tth = tth
-            self.files = [f.split('/')[-1][:-4] for f in files]
+            self.files = files
             self.temp = np.array(temp,dtype=float)
             self.removeSubplots()
             self.sub_plots = {key:np.array(sub_plots[key]) for key in sub_plots}
