@@ -8,6 +8,10 @@ The software provided here is intended only for internal use at Department of Ch
 The program is opened by running the "run_Reel.bat" file or double-clicking the corresponding short-cut.  
 If the program does not open, check that the path to python.exe in "run_Reel.bat" line 4 is valid.
 
+Files are opened from *Files->Open* by selected the desired files in the dialog box. **NB:** The file order might depend on the sorting order of the current folder!
+
+"Reel" through frames by dragging the green lines, either in the *Surface* plots or in the *Parameter* plot.
+
 ### Requirements ###
 Python 3.8.3 (Other versions of python 3 and modules might still work)  
 Non-built-in python modules:  
