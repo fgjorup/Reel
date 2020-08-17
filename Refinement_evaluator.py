@@ -1,17 +1,14 @@
 import os
 import sys
-import random
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '_lib'))
-
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets, uic
+    from PyQt5 import QtCore, QtWidgets, uic
     import pyqtgraph as pg
     import numpy as np
     from matplotlib import cm
 
 except ModuleNotFoundError as error:
-    if error.name in ('PyQt5', 'pyqtgraph', 'numpy'):
+    if error.name in ('PyQt5', 'pyqtgraph', 'numpy','matplotlib'):
         print('\n'+error.msg+'\nPlease use PIP to install: "pip install '+error.name+'"\n')
     else:
         print('\n'+error.msg+'\nPlease use PIP to install\n')
