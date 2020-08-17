@@ -291,7 +291,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.ppw.setCalData(self.tth,self.im[1,:,pos])
         self.ppw.setResData(self.tth,self.im[2,:,pos])
         for key in self.sub_plots:
-            self.ppw.setSubplotData(key,self.tth,self.sub_plots[key][pos,:])
+            self.ppw.setSubplotData(key,self.tth,self.sub_plots[key][-(pos+1),:])
         
         if len(self.temp)>0:
             self.parw.setTempData(np.arange(1,self.im.shape[2]+1,1,dtype=float),self.temp)
