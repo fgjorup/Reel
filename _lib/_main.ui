@@ -111,6 +111,9 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionUpdate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/icons/Update.png</normaloff>:/icons/Update.png</iconset>

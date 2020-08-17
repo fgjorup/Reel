@@ -87,9 +87,9 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
                         minXRange=10, 
                         yMin=-5,
                         minYRange=10)
-            ## Create random image
-            data = np.random.normal(size=(1, 600, 600), loc=1024, scale=64).astype(np.uint16)
-            self.images[i].setImage(data[0])
+
+            data = np.zeros((100,100))
+            self.images[i].setImage(data)
             ## Set initial view bounds
             #view[i].setRange(QtCore.QRectF(0, 0, 600, 600))
         
@@ -263,7 +263,9 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.miw.sigHLineDragged.connect(self.updatePatternPlot)
         self.parw.sigVLineDragged.connect(self.updateHLine)
         
-        self.files=[]
+        self.im = np.zeros((3,100,100))
+        self.tth = np.arange(0,100,1)
+        self.files=['']
         self.temp=[]
         self.sub_plots={}
         
@@ -373,6 +375,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.setMultiImages(tth,im)
             self.removeSubplots()
             self.updatePatternPlot()
+            self.actionUpdate.setEnabled(True)
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .prf files!\npath: '+path)    
             
@@ -461,6 +464,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             for key in sub_plots:
                 self.ppw.addSubplot(key=key)
             self.updatePatternPlot()
+            self.actionUpdate.setEnabled(True)
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .xyy files!\npath: '+path)    
             
