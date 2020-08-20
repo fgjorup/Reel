@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '_lib'))
 try:
-    from PyQt5 import QtCore, QtWidgets, uic
+    from PyQt5 import QtCore, QtWidgets, uic, QtGui
     import pyqtgraph as pg
     import numpy as np
     from matplotlib import cm
@@ -20,7 +20,7 @@ def roundup(x):
 
 def convertColormapMPtoPG(cmap):
     """Convert matplotlib.cm.cmap [0.0-1.0] to pyqtgraph.ColorMap [0-255]"""
-    pos = np.linspace(0,1,9)
+    pos = np.linspace(0,1,5)
     colors = [tuple(color*255) for color in cmap(pos)]
     return pg.ColorMap(pos=pos,color=colors)
 
@@ -50,6 +50,33 @@ def AUcolors(exclude=()):
         AU_colors.pop(ex)
     return AU_colors
 
+def darkPalette():
+    palette = QtGui.QPalette()
+    palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
+    palette.setColor(QtGui.QPalette.WindowText, QtGui.QColor(255, 255, 255))
+    palette.setColor(QtGui.QPalette.Base, QtGui.QColor(25, 25, 25))
+    palette.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
+    palette.setColor(QtGui.QPalette.ToolTipBase, QtGui.QColor(0, 0, 0))
+    palette.setColor(QtGui.QPalette.ToolTipText, QtGui.QColor(255, 255, 255))
+    palette.setColor(QtGui.QPalette.Text, QtGui.QColor(255, 255, 255))
+    palette.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
+    palette.setColor(QtGui.QPalette.ButtonText, QtGui.QColor(255, 255, 255))
+    palette.setColor(QtGui.QPalette.BrightText, QtGui.QColor(255, 0, 0))
+    palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+    palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+    palette.setColor(QtGui.QPalette.HighlightedText,QtGui.QColor(0, 0, 0))
+    #QPalette.setColorGroup(cr, windowText, button, light, dark, mid, text, bright_text, base, window)
+    palette.setColorGroup(QtGui.QPalette.Disabled, QtGui.QColor(53, 53, 53),
+                                                   QtGui.QColor(0, 0, 0),
+                                                   QtGui.QColor(25, 25, 25),
+                                                   QtGui.QColor(25, 25, 25),
+                                                   QtGui.QColor(25, 25, 25),
+                                                   QtGui.QColor(53, 53, 53),
+                                                   QtGui.QColor(255, 0, 0),
+                                                   QtGui.QColor(25, 25, 25),
+                                                   QtGui.QColor(53, 53, 53))
+    return palette
+
 class MultiImageWidget(pg.GraphicsLayoutWidget):
     
     sigHLineDragged = QtCore.Signal(object)
@@ -57,6 +84,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
     def __init__(self,n_images=1,labels=()):
         pg.GraphicsLayoutWidget.__init__(self)
         self._setLabels(labels)
+        self.setBackground((25,25,25))
         #Create imageItems
         self.images = [pg.ImageItem(border='w') for i in range(n_images)]     
         #Create histograms
@@ -73,9 +101,10 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         #Add last histogram 
         self.addItem(self.hist_2)
         #Add horizontal lines
-        self.hlines = [pg.InfiniteLine(pos=1,angle=0, movable=True, pen='g') for i in range(n_images)] 
+        self.hlines = [pg.InfiniteLine(pos=1,angle=0, movable=True, pen='g') for i in range(n_images)]
+        #Create axes
+        self.axes = [pg.AxisItem('bottom', maxTickLength=5,linkView=v) for v in self.views]
         for i,v in enumerate(self.views):
- 
             v.setAspectLocked(False)
             v.addItem(self.images[i])
             v.linkView(v.XAxis,self.views[0])
@@ -89,7 +118,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             self.images[i].setImage(data)
             ## Set initial view bounds
             #view[i].setRange(QtCore.QRectF(0, 0, 600, 600))
-        
+            
             #Add movable horizontal line for data slicing
             v.addItem(self.hlines[i])
             self.hlines[i].sigDragged.connect(self._update_hline)
@@ -97,7 +126,15 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             #hline.setValue(300)
             #hline.setZValue(1000) # bring iso line above contrast controls
             #hline.sigPositionChanged.connect(lambda: print(hline.value()))        
-        
+            
+        self.nextRow()
+        for i,v in enumerate(self.views):
+            #Add axis
+            self.addItem(self.axes[i])
+            if i == 1:
+                self.nextCol()
+            
+            
         #Register initial horizontal line values
         self._v_old = [round(v.value(),2) for v in self.hlines]
         #Register initial divergent colormap level
@@ -109,7 +146,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         
         self.hist_2.setImageItem(self.images[-1])
         self.hist_2.sigLevelsChanged.connect(self._setDivergentLevels)
-        
+        #self.hist_2.sigLevelChangeFinished.connect(self._setDivergentRange)
         
     def _update_hline(self):
         v_new = [v.value() for v in self.hlines if not round(v.value(),2) in self._v_old]
@@ -137,7 +174,11 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             level = abs(new[0])
             self.hist_2.setLevels(min=-level ,max=level)
         self._l_old = self.hist_2.getLevels()
-        
+    
+    def _setDivergentRange(self):
+        _,level = self.hist_2.getLevels()
+        self.hist_2.setHistogramRange(-roundup(level),roundup(level))
+    
     def setData(self,index, im):
         xMax, yMax = im.shape
         self.images[index].setImage(im)
@@ -147,11 +188,22 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
                                     yMin=-2, yMax=yMax+2,
                                     minYRange=10)
         for hl in self.hlines:
-                hl.setValue(0.5)
+                hl.setValue(yMax-0.5)
+                hl.setBounds((-1,yMax+1))
     
+    def setTicks(self, index, ticks):
+        """
+        [
+            [ (majorTickValue1, majorTickString1), (majorTickValue2, majorTickString2), ... ],
+            [ (minorTickValue1, minorTickString1), (minorTickValue2, minorTickString2), ... ],
+            ...
+        ]
+        """
+        self.axes[index].setTicks(ticks)
+          
     def _setLabels(self,labels=[]):
         for label in labels:
-            self.addLabel(label)
+            self.addLabel(label,color='w')
         if len(labels)>0:
             self.nextRow()
 
@@ -163,8 +215,8 @@ class PlotPatternWidget(pg.PlotWidget):
     def __init__(self):
         pg.PlotWidget.__init__(self)
         
-        #Set Background color to white
-        #self.setBackground('w')
+        #Set Background color to gray
+        self.setBackground((25,25,25))
         self.setLabel('left','Intensity (a.u.)')
         self.setLabel('bottom','2θ (°)')
         self.addLegend()
@@ -213,8 +265,8 @@ class PlotParametersWidget(pg.PlotWidget):
     def __init__(self):
         pg.PlotWidget.__init__(self)
         
-        #Set Background color to white
-        #self.setBackground('w')
+        #Set Background color to gray
+        self.setBackground((25,25,25))
         self.setLabel('left','Temperature (K)')
         self.setLabel('bottom','Frame (#)')
         self.addLegend()
@@ -230,8 +282,10 @@ class PlotParametersWidget(pg.PlotWidget):
         
     def setTempData(self,x,y):
         self.ptemp.setData(x,y)
-        self.setLimits(xMin=0, xMax=len(x)+1,
+        self.setLimits(xMin=-2, xMax=len(x)+2,
                yMin=0, yMax=roundup(y.max()))
+        self.vline.setBounds((-1,len(x)+1))
+         
     def updateVline(self,pos):
         self.vline.setValue(pos)
         
@@ -275,14 +329,27 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         return
     
     def aboutBox(self):
-        text = '<html><head/><body><p align="center"><span style=" font-weight:600;">Refinement Evaluator</span></p><p align="center">by Frederik H Gjørup</p><p align="center">August 2020</p></body></html>'
-        QtWidgets.QMessageBox.about(self,'About',text)
+        text = ['<html><head/>',
+                    '<body>',
+                        '<p align="center">',
+                            '<span style=" font-size:10pt; font-weight:600;">',
+                                'Refinement Evaluator<br/>',
+                            '</span>',
+                            'by<br/>',
+                            'Frederik H Gjørup<br/>',
+                            'Department of Chemistry<br/>',
+                            'Aarhus University<br/>',
+                            'August 2020',
+                        '</p>',
+                    '</body>',
+                '</html>']
+        QtWidgets.QMessageBox.about(self,'About',''.join(text))
         
     def updatePatternPlot(self):
         h_val = self.miw.getHorizontalLineVal()
         pos = int(np.clip(round(h_val),0,self.im.shape[2]-1))
         temp = ''
-        if self.files:
+        if not self.files[0] == '':
             if len(self.temp)>0:
                 temp = ' - Temperature: {:.0f} K'.format(self.temp[-(pos+1)])
             title = '{}{}'.format(self.files[-(pos+1)].split('/')[-1][:-4],temp)
@@ -296,7 +363,40 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         if len(self.temp)>0:
             self.parw.setTempData(np.arange(1,self.im.shape[2]+1,1,dtype=float),self.temp)
         self.parw.updateVline(len(self.temp)-h_val+0.5)
-        
+    
+    def setMultiImages(self,tth,im):
+        #Generate ticks for images
+        ticks = self.generateTicks(tth)        
+        for i in range(3):
+            self.miw.setData(i,im[i])
+            self.miw.setTicks(i,ticks)
+            
+    def generateTicks(self,tth):
+        """Generate ticks assuming equidistant steps.
+        return:
+                [[ (majorTickValue1, majorTickString1), (majorTickValue2, majorTickString2), ... ],
+            [ (minorTickValue1, minorTickString1), (minorTickValue2, minorTickString2), ... ]]
+        """
+        if tth[-1]-self.tth[0] < 15:
+            scale = 1
+        elif tth[-1]-tth[0] < 30:
+            scale = 2
+        elif tth[-1]-tth[0] < 60:
+            scale = 5
+        else:
+            scale = 10
+        mn = np.ceil(tth[0]/scale)*scale
+        mx = np.floor(tth[-1]/scale)*scale
+        first = np.argmin(np.abs(tth-mn))
+        last = np.argmin(np.abs(tth-mx))
+        step = scale/np.mean(np.diff(tth))
+        val = np.arange(first-step,last+step,step)
+        minor = np.linspace(val[0],val[-1]+step,(len(val))*10+1)
+        s = np.arange(mn-scale,mx+scale*2,scale)
+        ticks = [[(v,'{:.0f}'.format(s[i])) for i, v in enumerate(val)],[(m,'') for m in minor]]
+        return ticks
+    
+    
     def updateHLine(self):
         val = len(self.temp)-self.parw.vline.value()
         self.miw.hlines[0].setValue(val+0.5)
@@ -484,11 +584,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             h[key]=value
         dic = {p:data[:,i] for i,p in enumerate(parameters)}
         return h, dic
-        
-    def setMultiImages(self,tth,im):
-        for i in range(3):
-            self.miw.setData(i,im[i])
-        
+            
     def progressWindow(self,label,cancel_label,min_val,max_val,window_title,icon=None):
         progress = QtWidgets.QProgressDialog(label, cancel_label, min_val, max_val)
         progress.setWindowModality(QtCore.Qt.WindowModal)
@@ -499,6 +595,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
 def main():
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle('Fusion')
+    app.setPalette(darkPalette())
     ui = mainWindow()
     ui.show()
     sys.exit(app.exec_())
