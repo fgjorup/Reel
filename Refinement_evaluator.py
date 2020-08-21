@@ -313,13 +313,31 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
         self.miw.sigHLineDragged.connect(self.updatePatternPlot)
         self.parw.sigVLineDragged.connect(self.updateHLine)
+        for image in self.miw.images:
+            image.hoverEvent = self.imageHoverEvent
+        
         
         self.im = np.zeros((3,100,100))
         self.tth = np.arange(0,100,1)
         self.files=['']
         self.temp=[]
         self.sub_plots={}
-        
+    
+    def imageHoverEvent(self,event):
+        if event.isExit():
+            self.statusbar.clearMessage()
+            return
+        datapoints  = self.im.shape[1]
+        frames = self.im.shape[2]
+        pos = event.pos()
+        #vpos = self.imw_im.view.mapToView(pos)
+        i, j = pos.x(), pos.y()
+        i = int(np.clip(i, 0, datapoints - 1))
+        j = int(np.clip(j, 0, frames - 1))
+        tth = self.tth[i]
+        obs, calc, res = [val[i, j] for val in self.im]
+        self.statusbar.showMessage('Frame: {:4d}  |  2θ: {:6.2f}  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,obs,calc,res))
+    
     def updateFiles(self):
         files = self.files
         if files[0].endswith('.prf'):
