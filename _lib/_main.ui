@@ -56,7 +56,7 @@
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="groupBox_pattern">
       <property name="title">
        <string>Diffraction pattern</string>
       </property>
@@ -93,7 +93,7 @@
      <addaction name="action_OpenCSV"/>
      <addaction name="action_OpenDAT"/>
      <addaction name="action_OpenPRF"/>
-     <addaction name="action_xye"/>
+     <addaction name="action_OpenXYE"/>
      <addaction name="action_OpenXYY"/>
     </widget>
     <addaction name="menuOpen"/>
@@ -151,15 +151,15 @@
   </action>
   <action name="action_OpenDAT">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>*.dat</string>
    </property>
   </action>
-  <action name="action_xye">
+  <action name="action_OpenXYE">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>*.xye</string>

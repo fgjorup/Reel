@@ -18,6 +18,18 @@ def roundup(x):
     """Return x (int,float) rounded up to nearest 100.0"""
     return np.ceil(x/100)*100
 
+def tth2Q(tth,lambd):    
+    Q = 4*np.pi*np.sin(np.radians(tth/2))/lambd
+    return(Q)
+
+def d2tth(d,lambd):
+    tth = np.degrees(np.arcsin(lambd/(2*d)))*2
+    return tth
+
+def tth2d(tth,lambd):
+    d = lambd/(np.sin(np.radians(tth)/2) * 2)
+    return d
+
 def convertColormapMPtoPG(cmap):
     """Convert matplotlib.cm.cmap [0.0-1.0] to pyqtgraph.ColorMap [0-255]"""
     pos = np.linspace(0,1,5)
@@ -269,7 +281,7 @@ class PlotParametersWidget(pg.PlotWidget):
         self.setBackground((25,25,25))
         self.setLabel('left','Temperature (K)')
         self.setLabel('bottom','Frame (#)')
-        self.addLegend()
+        self.legend = self.addLegend()
         self.setLimits(xMin=0, xMax=10000,
                        yMin=0, yMax=2500)
         
@@ -277,15 +289,48 @@ class PlotParametersWidget(pg.PlotWidget):
         self.vline = pg.InfiniteLine(pos=1,angle=90, movable=True, pen='g')
         self.addItem(self.vline)
         self.vline.sigDragged.connect(self._update_vline)
-        #Add plots
-        self.ptemp = self.plot(x=[0],y=[0], name='Temperature', pen=pg.mkPen(color=(238, 127, 0)), symbol='+', symbolPen=(238, 127, 0))
+
+        #Create first plotItem
+        self.p1 = self.plotItem
+        self.p1.setLabels(left='Temperature (K)')
+        #Hide second x-axis until data is added with setRwpData()
+        self.p1.showAxis('right', show=False)
+        rwp_label = '<html><head/><body><p>R<span style=" vertical-align:sub;">wp</span></p></body></html>'
+        self.p1.getAxis('right').setLabel(rwp_label)        
+        
+        #Create a new ViewBox, link the right axis to its coordinate system
+        self.v2 = pg.ViewBox()
+        self.p1.scene().addItem(self.v2)
+        self.p1.getAxis('right').linkToView(self.v2)
+        self.v2.setXLink(self.p1)
+        
+        #Add temperature plot to PlotItem
+        self.ptemp = self.p1.plot(x=[0],y=[0], name='Temperature', pen=pg.mkPen(color=(238, 127, 0)), symbol='+', symbolPen=(238, 127, 0))
+        #Create Rwp plot and add to second viewbox
+        self.prwp = pg.PlotDataItem(x=[0],y=[0], name=rwp_label, pen=pg.mkPen(color=(139,173, 63)), symbol='+', symbolPen=(139,173, 63))
+        self.v2.addItem(self.prwp)
+        
+        self._updateViews()
+        self.p1.vb.sigResized.connect(self._updateViews)        
+        
+    ## Handle view resizing 
+    def _updateViews(self):
+        ## view has resized; update auxiliary views to match
+        self.v2.setGeometry(self.p1.vb.sceneBoundingRect())
+        self.v2.linkedViewChanged(self.p1.vb, self.v2.XAxis)
         
     def setTempData(self,x,y):
         self.ptemp.setData(x,y)
         self.setLimits(xMin=-2, xMax=len(x)+2,
                yMin=0, yMax=roundup(y.max()))
         self.vline.setBounds((-1,len(x)+1))
-         
+    
+    def setRwpData(self,x,y):
+        if len(self.legend.items) < 2:
+            self.legend.addItem(self.prwp, self.prwp.name())
+            self.p1.showAxis('right',show=True)
+        self.prwp.setData(x,y)
+        
     def updateVline(self,pos):
         self.vline.setValue(pos)
         
@@ -299,7 +344,9 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
         self.actionUpdate.triggered.connect(self.updateFiles)
         self.action_OpenCSV.triggered.connect(self.openCSV)
+        self.action_OpenDAT.triggered.connect(self.openDAT)
         self.action_OpenPRF.triggered.connect(self.openPRF)
+        self.action_OpenXYE.triggered.connect(self.openXYE)
         self.action_OpenXYY.triggered.connect(self.openXYY)
         self.actionAbout.triggered.connect(self.aboutBox)
         
@@ -315,12 +362,15 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.parw.sigVLineDragged.connect(self.updateHLine)
         for image in self.miw.images:
             image.hoverEvent = self.imageHoverEvent
-        
+        self.ppw.pobs.getViewBox().hoverEvent = self.patternHoverEvent
+        self.parw.ptemp.getViewBox().hoverEvent = self.parameterHoverEvent
         
         self.im = np.zeros((3,100,100))
         self.tth = np.arange(0,100,1)
-        self.files=['']
-        self.temp=[]
+        self.files = ['']
+        self.temp = []
+        self.rwp = []
+        self.lambd = None
         self.sub_plots={}
     
     def imageHoverEvent(self,event):
@@ -336,14 +386,51 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         j = int(np.clip(j, 0, frames - 1))
         tth = self.tth[i]
         obs, calc, res = [val[i, j] for val in self.im]
-        self.statusbar.showMessage('Frame: {:4d}  |  2θ: {:6.2f}  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,obs,calc,res))
+        if isinstance(self.lambd,float):
+            Q = tth2Q(tth,self.lambd)
+            d = tth2d(tth,self.lambd)
+            self.statusbar.showMessage('Frame: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,Q,d,obs,calc,res))
+        else:
+            self.statusbar.showMessage('Frame: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,obs,calc,res))
     
+    def patternHoverEvent(self,event):
+        if event.isExit():
+            self.statusbar.clearMessage()
+            return
+        pos = event.pos()
+        vpos = self.ppw.pobs.getViewBox().mapToView(pos)
+        tth, I = vpos.x(), vpos.y()
+        if isinstance(self.lambd,float):
+            Q = tth2Q(tth,self.lambd)
+            d = tth2d(tth,self.lambd)
+            self.statusbar.showMessage('2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Intensity: {:8.1f}  |'.format(tth,Q,d,I))
+        else:    
+            self.statusbar.showMessage('2θ: {:6.2f}  |  Intensity: {:8.1f}  |'.format(tth,I))
+
+    def parameterHoverEvent(self,event):
+        if event.isExit():
+            self.statusbar.clearMessage()
+            return
+        pos = event.pos()
+        vpos = self.parw.ptemp.getViewBox().mapToView(pos)
+        f, T = vpos.x(), vpos.y()
+        if len(self.rwp)>0:
+            i = np.clip(f, 0, self.rwp.shape[0]-1)
+            rwp = self.rwp[int(i)]
+            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K |  Rwp: {:6.2f} K |'.format(f,T,rwp))
+        else:
+            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K |'.format(f,T))
+
     def updateFiles(self):
         files = self.files
         if files[0].endswith('.prf'):
             self.openPRF(files)
         elif files[0].endswith('.xyy'):
             self.openXYY(files)
+        elif files[0].endswith('.dat'):
+            self.openDAT(files)
+        elif files[0].endswith('.xye'):
+            self.openXYE(files)
         return
     
     def aboutBox(self):
@@ -378,9 +465,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         for key in self.sub_plots:
             self.ppw.setSubplotData(key,self.tth,self.sub_plots[key][-(pos+1),:])
         
-        if len(self.temp)>0:
-            self.parw.setTempData(np.arange(1,self.im.shape[2]+1,1,dtype=float),self.temp)
         self.parw.updateVline(len(self.temp)-h_val+0.5)
+    
+    def updateParameterPlot(self):
+        frames = np.arange(1,self.im.shape[2]+1,1,dtype=float)
+        if len(self.temp)>0:
+            self.parw.setTempData(frames,self.temp)
+        if len(self.rwp)>0:
+            self.parw.setRwpData(frames,self.rwp)
     
     def setMultiImages(self,tth,im):
         #Generate ticks for images
@@ -444,7 +536,6 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .csv file!\nFile: '+path)    
 
-
     def readMatrix(self,fname):
         with open(fname,'r') as f:
            content = f.read()
@@ -463,13 +554,15 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .prf files', path , '*.prf')
         else:
             path = '/'.join(files[0].split('/')[:-1])
+        if len(files)<1:
+            return
         if files[0].endswith('.prf'):
-            progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator') #,QtGui.QIcon(":icons/MainIcon.png"))
+            progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
             im =[[],[],[]]
             temp=[]
             for i, file in enumerate(files):
                 progress.setValue(i)
-                tth, yobs, ycal, res, bckg, T, excl_reg = self.readPRF(file)
+                tth, yobs, ycal, res, bckg, T, excl_reg, lambd = self.readPRF(file)
                 res = np.array([float(yobs[i])-float(ycal[i]) for i in range(len(yobs))])
                 res[excl_reg]=0
                 ycal[excl_reg]=np.nan
@@ -486,10 +579,12 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.files =  files
             if not None in temp:
                 self.temp = np.array(temp,dtype=float)
+            self.lambd = lambd[0]
             progress.setValue(len(files))
             self.setMultiImages(tth,im)
             self.removeSubplots()
             self.updatePatternPlot()
+            self.updateParameterPlot()
             self.actionUpdate.setEnabled(True)
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .prf files!\npath: '+path)    
@@ -505,6 +600,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 temp = float(header[0].split()[-1])
             except ValueError:
                 temp = None
+            lambd =  [float(l) for l in header[1].split()[2:4]]
             for i in range(int(header[2].split()[-1])):
                 mask.append(file.readline().split())
             file.readline()
@@ -522,7 +618,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         for i in mask:
             excl_reg = ((tth < i[0]) | (tth > i[1])) & excl_reg
         excl_reg = excl_reg==False
-        return(tth, yobs, ycal, res, bckg, temp, excl_reg)
+        return tth, yobs, ycal, res, bckg, temp, excl_reg, lambd
 
     def openXYY(self,files=None):
         if not isinstance(files,list):
@@ -532,11 +628,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xyy files', path , '*.xyy')
         else:
             path = '/'.join(files[0].split('/')[:-1])
+        if len(files)<1:
+            return
         if files[0].endswith('.xyy'):
-            progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator') #,QtGui.QIcon(":icons/MainIcon.png"))
+            progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
             im = [[],[],[]]
             bgr = []
             sub_plots = {}
+            rwp = []
             temp = []
             for i, file in enumerate(files):
                 progress.setValue(i)
@@ -551,6 +650,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                         sub_plots[key].append(data[key])
                     except KeyError:
                         sub_plots[key]=[data[key]]
+                rwp.append(header['R_wp'])
                 temp.append(header['Temperature (K)'])
                 if progress.wasCanceled():
                     break
@@ -571,7 +671,9 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.im = im 
             self.tth = tth
             self.files = files
+            self.rwp = np.array(rwp,dtype=float)
             self.temp = np.array(temp,dtype=float)
+            self.lambd = float(header['Wavelength (Ã…)'])
             self.removeSubplots()
             self.sub_plots = {key:np.array(sub_plots[key]) for key in sub_plots}
             progress.setValue(len(files))
@@ -579,6 +681,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             for key in sub_plots:
                 self.ppw.addSubplot(key=key)
             self.updatePatternPlot()
+            self.updateParameterPlot()
             self.actionUpdate.setEnabled(True)
         else:
             QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .xyy files!\npath: '+path)    
@@ -602,7 +705,126 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             h[key]=value
         dic = {p:data[:,i] for i,p in enumerate(parameters)}
         return h, dic
-            
+    
+    def openDAT(self,files=None):
+        if not isinstance(files,list):
+            path = ''
+            if not path:
+                path = QtCore.QDir.currentPath() 
+            files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .dat files', path , '*.dat')
+        else:
+            path = '/'.join(files[0].split('/')[:-1])
+        if len(files)<1:
+            return
+        if files[0].endswith('.dat'):
+            progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
+            im =[[],[],[]]
+            temp=[]
+            for i, file in enumerate(files):
+                progress.setValue(i)
+                tth,yobs,T,lambd, _, _ = self.readDat(file)
+                im[0].append(yobs)
+                im[1].append(np.full(yobs.shape,0,dtype=float))
+                im[2].append(np.full(yobs.shape,0,dtype=float))
+                temp.append(T)
+                if progress.wasCanceled():
+                    break
+            im = np.array(im)
+            im = np.rot90(im,k=-1,axes=(1,2))
+            self.im = im 
+            self.tth = tth
+            self.files =  files
+            if not None in temp:
+                self.temp = np.array(temp,dtype=float)
+            self.lambd = lambd
+            progress.setValue(len(files))
+            self.setMultiImages(tth,im)
+            self.removeSubplots()
+            self.updatePatternPlot()
+            self.updateParameterPlot()
+            self.actionUpdate.setEnabled(True)
+        else:
+            QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .dat file!\nFile: '+path)  
+    
+    def readDat(self, fname,temp=None,lamb=None,ts=None,t=None):      
+        with open(fname,'r') as file:
+            for i in range(6):
+                line = file.readline()
+                if line.startswith('TEMP'):
+                    temp = line.split()[-1]
+                elif line.startswith('!Wavelength:'):
+                    lamb = float(line.split()[-1])
+                elif line.startswith('!Timestamp:'):
+                    ts = ' '.join(line.split()[1:])
+                elif line.startswith('!Acquisition'):
+                    t = float(line.split()[-3])*float(line.split()[-1])
+                if i == 3 and len(line.split())>=10:
+                    #If alternativ .dat format:
+                    tth, I, _ = self.readDatAlt(fname)
+                    return tth,I,temp,lamb,ts,t 
+            content = np.loadtxt(file, skiprows = 0)
+        tth, I = content[:,0], content[:,1]
+        return tth,I,temp,lamb,ts,t
+    
+    def readDatAlt(self,fname):
+        """Alternative .dat format using start, step, stop."""
+        with open(fname,'r') as file:
+            name = file.readline().strip()
+            header = file.readline()
+            start,step,stop = [float(x) for x in file.readline().split()[0:3]]
+            content = file.read()
+        tth = np.arange(start,stop+step,step)
+        I = content.split()[:len(tth)]
+        sig = content.split()[len(tth):len(tth)*2]
+        if len(sig)<len(tth):
+            sig = np.array(I)**0.5
+        return tth, np.array(I,dtype=float), np.array(sig,dtype=float)
+    
+    def openXYE(self,files=None):
+        if not isinstance(files,list):
+            path = ''
+            if not path:
+                path = QtCore.QDir.currentPath() 
+            files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xye files', path , '*.xye')
+        else:
+            path = '/'.join(files[0].split('/')[:-1])
+        if len(files)<1:
+            return
+        if files[0].endswith('.xye'):
+            progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
+            im =[[],[],[]]
+            for i, file in enumerate(files):
+                progress.setValue(i)
+                tth,yobs,_ = self.readXYE(file)
+                im[0].append(yobs)
+                im[1].append(np.full(yobs.shape,0,dtype=float))
+                im[2].append(np.full(yobs.shape,0,dtype=float))
+                if progress.wasCanceled():
+                    break
+            im = np.array(im)
+            im = np.rot90(im,k=-1,axes=(1,2))
+            self.im = im 
+            self.tth = tth
+            self.files =  files
+            progress.setValue(len(files))
+            self.setMultiImages(tth,im)
+            self.removeSubplots()
+            self.updatePatternPlot()
+            self.updateParameterPlot()
+            self.actionUpdate.setEnabled(True)
+        else:
+            QtWidgets.QMessageBox.warning(self,'Warning','Unable to open .xye file!\nFile: '+path) 
+    
+    def readXYE(self,fname):
+        sig=None
+        with open(fname,'r') as file:
+            content = np.loadtxt(file, skiprows = 0)
+        if content.shape[1]<3:
+            tth, I = content[:,0], content[:,1]
+        else:
+            tth, I, sig = content[:,0], content[:,1], content[:,2]
+        return tth, I, sig
+    
     def progressWindow(self,label,cancel_label,min_val,max_val,window_title,icon=None):
         progress = QtWidgets.QProgressDialog(label, cancel_label, min_val, max_val)
         progress.setWindowModality(QtCore.Qt.WindowModal)
