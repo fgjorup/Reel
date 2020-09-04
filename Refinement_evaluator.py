@@ -105,11 +105,11 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         self.hist_2 = pg.HistogramLUTItem()
         self.hist_2.gradient.setColorMap(convertColormapMPtoPG(cm.get_cmap('bwr')))
         # Create a ViewBox for each image -1
-        self.views = [self.addViewBox(invertY=True) for i in range(n_images-1)]
+        self.views = [self.addViewBox(invertY=True,name=labels[i]) for i in range(n_images-1)]
         #Add first histogram
         self.addItem(self.hist)
         #Add last viewbox
-        self.views.append(self.addViewBox(invertY=True))
+        self.views.append(self.addViewBox(invertY=True,name=labels[-2]))
         #Add last histogram 
         self.addItem(self.hist_2)
         #Add horizontal lines
@@ -284,7 +284,7 @@ class PlotParametersWidget(pg.PlotWidget):
         self.legend = self.addLegend()
         self.setLimits(xMin=0, xMax=10000,
                        yMin=0, yMax=2500)
-        
+        #self.enableAutoRange(enable=True)
         #Add vertical line
         self.vline = pg.InfiniteLine(pos=1,angle=90, movable=True, pen='g')
         self.addItem(self.vline)
@@ -295,19 +295,26 @@ class PlotParametersWidget(pg.PlotWidget):
         self.p1.setLabels(left='Temperature (K)')
         #Hide second x-axis until data is added with setRwpData()
         self.p1.showAxis('right', show=False)
+        rp_label = '<html><head/><body><p>R<span style=" vertical-align:sub;">p</span></p></body></html>'
         rwp_label = '<html><head/><body><p>R<span style=" vertical-align:sub;">wp</span></p></body></html>'
-        self.p1.getAxis('right').setLabel(rwp_label)        
+        #self.p1.getAxis('right').setLabel(rwp_label)        
+        self.p1.getAxis('right').setLabel('R-value')   
         
         #Create a new ViewBox, link the right axis to its coordinate system
         self.v2 = pg.ViewBox()
         self.p1.scene().addItem(self.v2)
         self.p1.getAxis('right').linkToView(self.v2)
         self.v2.setXLink(self.p1)
+        self.v2.setLimits(yMin=0, yMax=1000)
         
         #Add temperature plot to PlotItem
-        self.ptemp = self.p1.plot(x=[0],y=[0], name='Temperature', pen=pg.mkPen(color=(238, 127, 0)), symbol='+', symbolPen=(238, 127, 0))
+        self.ptemp = self.p1.plot(x=[-1],y=[-1], name='Temperature', pen=pg.mkPen(color=(238, 127, 0)), symbol='+', symbolPen=(238, 127, 0))
         #Create Rwp plot and add to second viewbox
-        self.prwp = pg.PlotDataItem(x=[0],y=[0], name=rwp_label, pen=pg.mkPen(color=(139,173, 63)), symbol='+', symbolPen=(139,173, 63))
+        self.prp = pg.PlotDataItem(x=[-1],y=[-1], name=rp_label, pen=pg.mkPen(color=(  0, 61,115)), symbol='+', symbolPen=(  0, 61,115))
+        
+        #Create Rwp plot and add to second viewbox
+        self.prwp = pg.PlotDataItem(x=[-1],y=[-1], name=rwp_label, pen=pg.mkPen(color=(139,173, 63)), symbol='+', symbolPen=(139,173, 63))
+        self.v2.addItem(self.prp)
         self.v2.addItem(self.prwp)
         
         self._updateViews()
@@ -319,17 +326,33 @@ class PlotParametersWidget(pg.PlotWidget):
         self.v2.setGeometry(self.p1.vb.sceneBoundingRect())
         self.v2.linkedViewChanged(self.p1.vb, self.v2.XAxis)
         
+    def clearPlot(self):
+        self.ptemp.setData([-1],[-1])
+        self.prwp.setData([-1],[-1])
+        self.prp.setData([-1],[-1])
+        self.legend.clear()
+        
     def setTempData(self,x,y):
+        self.legend.addItem(self.ptemp, self.ptemp.name())
         self.ptemp.setData(x,y)
+        yMax = roundup(y.max())
+        if yMax < 1:
+            yMax = 1.0
         self.setLimits(xMin=-2, xMax=len(x)+2,
-               yMin=0, yMax=roundup(y.max()))
+               yMin=0, yMax=yMax)
         self.vline.setBounds((-1,len(x)+1))
+        self.autoRange()
     
     def setRwpData(self,x,y):
-        if len(self.legend.items) < 2:
-            self.legend.addItem(self.prwp, self.prwp.name())
-            self.p1.showAxis('right',show=True)
+        self.legend.addItem(self.prwp, self.prwp.name())
+        self.p1.showAxis('right',show=True)
         self.prwp.setData(x,y)
+        
+    def setRpData(self,x,y):
+        self.legend.addItem(self.prp, self.prp.name())
+        self.p1.showAxis('right',show=True)
+        self.prp.setData(x,y)
+        self.v2.autoRange()
         
     def updateVline(self,pos):
         self.vline.setValue(pos)
@@ -369,6 +392,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.tth = np.arange(0,100,1)
         self.files = ['']
         self.temp = []
+        self.rp = []
         self.rwp = []
         self.lambd = None
         self.sub_plots={}
@@ -469,8 +493,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
     
     def updateParameterPlot(self):
         frames = np.arange(1,self.im.shape[2]+1,1,dtype=float)
+        self.parw.clearPlot()
         if len(self.temp)>0:
-            self.parw.setTempData(frames,self.temp)
+            if not np.all(self.temp==0.0):
+                self.parw.setTempData(frames,self.temp)
+            else:
+                self.parw.setTempData(frames,np.full(frames.shape[0],-1.0,dtype=float))
+        if len(self.rp)>0:
+            self.parw.setRpData(frames,self.rp)
         if len(self.rwp)>0:
             self.parw.setRwpData(frames,self.rwp)
     
@@ -560,6 +590,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
             im =[[],[],[]]
             temp=[]
+            rp = []
             for i, file in enumerate(files):
                 progress.setValue(i)
                 tth, yobs, ycal, res, bckg, T, excl_reg, lambd = self.readPRF(file)
@@ -570,16 +601,23 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 im[1].append(ycal)
                 im[2].append(res)
                 temp.append(T)
+                rp.append(np.sum(abs(res[excl_reg==False]))/np.sum(yobs[excl_reg==False])*100)
                 if progress.wasCanceled():
                     break
             im = np.array(im)
             im = np.rot90(im,k=-1,axes=(1,2))
+            
             self.im = im 
             self.tth = tth
             self.files =  files
+            self.rp = np.array(rp,dtype=float)
+            self.rwp = []            
             if not None in temp:
                 self.temp = np.array(temp,dtype=float)
+            else:
+                self.temp = []
             self.lambd = lambd[0]
+
             progress.setValue(len(files))
             self.setMultiImages(tth,im)
             self.removeSubplots()
@@ -614,9 +652,13 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         res = content[:,3]
         bckg = content[:,4]
         mask = np.array(mask, dtype = float)
-        excl_reg = (tth < mask[0,0]) | (tth > mask[0,1])
+        if len(mask)>0:
+            excl_reg = (tth < mask[0,0]) | (tth > mask[0,1])
+        else:
+            excl_reg = np.full(tth.shape[0],True)
         for i in mask:
             excl_reg = ((tth < i[0]) | (tth > i[1])) & excl_reg
+        #Invert True/False
         excl_reg = excl_reg==False
         return tth, yobs, ycal, res, bckg, temp, excl_reg, lambd
 
@@ -637,13 +679,17 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             sub_plots = {}
             rwp = []
             temp = []
+            rp = []
             for i, file in enumerate(files):
                 progress.setValue(i)
                 header, data = self.readXYY(file)
                 tth = data.pop('tth')
-                im[0].append(data.pop('Y_obs'))
-                im[1].append(data.pop('Y_calc'))
-                im[2].append(data.pop('Y_res'))
+                yobs = data.pop('Y_obs')
+                ycal = data.pop('Y_calc')
+                res = data.pop('Y_res')
+                im[0].append(yobs)
+                im[1].append(ycal)
+                im[2].append(res)
                 bgr.append(data.pop('Background'))
                 for key in data:
                     try:
@@ -652,6 +698,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                         sub_plots[key]=[data[key]]
                 rwp.append(header['R_wp'])
                 temp.append(header['Temperature (K)'])
+                rp.append(np.sum(abs(res))/np.sum(yobs)*100)
                 if progress.wasCanceled():
                     break
             """
@@ -672,6 +719,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.tth = tth
             self.files = files
             self.rwp = np.array(rwp,dtype=float)
+            self.rp = np.array(rp,dtype=float)
             self.temp = np.array(temp,dtype=float)
             self.lambd = float(header['Wavelength (Ã…)'])
             self.removeSubplots()
@@ -736,7 +784,10 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.files =  files
             if not None in temp:
                 self.temp = np.array(temp,dtype=float)
+            else:
+                self.temp = []
             self.lambd = lambd
+            self.rwp = []
             progress.setValue(len(files))
             self.setMultiImages(tth,im)
             self.removeSubplots()
@@ -806,6 +857,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.im = im 
             self.tth = tth
             self.files =  files
+            self.rwp = []
             progress.setValue(len(files))
             self.setMultiImages(tth,im)
             self.removeSubplots()
