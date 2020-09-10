@@ -438,12 +438,22 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         pos = event.pos()
         vpos = self.parw.ptemp.getViewBox().mapToView(pos)
         f, T = vpos.x(), vpos.y()
-        if len(self.rwp)>0:
+        if len(self.rwp)>0 and len(self.rp)>0:
             i = np.clip(f, 0, self.rwp.shape[0]-1)
             rwp = self.rwp[int(i)]
-            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K |  Rwp: {:6.2f} K |'.format(f,T,rwp))
+            rp = self.rp[int(i)]
+            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K  |  Rwp: {:6.2f}  |  Rp: {:6.2f}  |'.format(f,T,rwp,rp))
+        elif len(self.rwp)>0:
+            i = np.clip(f, 0, self.rwp.shape[0]-1)
+            rwp = self.rwp[int(i)]
+            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K  |  Rwp: {:6.2f}  |'.format(f,T,rwp))
+        elif len(self.rp)>0:
+            i = np.clip(f, 0, self.rp.shape[0]-1)
+            rp = self.rp[int(i)]
+            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K  |  Rp: {:6.2f}  |'.format(f,T,rp))
+        
         else:
-            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K |'.format(f,T))
+            self.statusbar.showMessage('Frame: {:4.0f}  |  Temperature: {:6.1f} K  |'.format(f,T))
 
     def updateFiles(self):
         files = self.files
@@ -583,7 +593,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 path = QtCore.QDir.currentPath() 
             files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .prf files', path , '*.prf')
         else:
-            path = '/'.join(files[0].split('/')[:-1])
+            path = os.path.dirname(files[0])
         if len(files)<1:
             return
         if files[0].endswith('.prf'):
@@ -669,7 +679,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 path = QtCore.QDir.currentPath() 
             files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xyy files', path , '*.xyy')
         else:
-            path = '/'.join(files[0].split('/')[:-1])
+            path = os.path.dirname(files[0])
         if len(files)<1:
             return
         if files[0].endswith('.xyy'):
@@ -761,7 +771,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 path = QtCore.QDir.currentPath() 
             files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .dat files', path , '*.dat')
         else:
-            path = '/'.join(files[0].split('/')[:-1])
+            path = os.path.dirname(files[0])
         if len(files)<1:
             return
         if files[0].endswith('.dat'):
@@ -838,7 +848,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 path = QtCore.QDir.currentPath() 
             files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xye files', path , '*.xye')
         else:
-            path = '/'.join(files[0].split('/')[:-1])
+            path = os.path.dirname(files[0])
         if len(files)<1:
             return
         if files[0].endswith('.xye'):
@@ -881,6 +891,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         progress = QtWidgets.QProgressDialog(label, cancel_label, min_val, max_val)
         progress.setWindowModality(QtCore.Qt.WindowModal)
         progress.setWindowTitle(window_title)
+        progress.setMinimumDuration(1000)#milliseconds
         if not icon == None:
             progress.setWindowIcon(icon)
         return progress
