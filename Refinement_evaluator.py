@@ -731,7 +731,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.rwp = np.array(rwp,dtype=float)
             self.rp = np.array(rp,dtype=float)
             self.temp = np.array(temp,dtype=float)
-            self.lambd = float(header['Wavelength (Ã…)'])
+            self.lambd = float(header['Wavelength (Å)'])
+            #self.lambd = float(header['Wavelength (Ã…)'])
             self.removeSubplots()
             self.sub_plots = {key:np.array(sub_plots[key]) for key in sub_plots}
             progress.setValue(len(files))
@@ -760,6 +761,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         for s in header[1:comments]:
             if ':' in s:
                 key, value = s.split(':')
+                if key == 'Wavelength (Ã…)':
+                    key = 'Wavelength (Å)'
             h[key]=value
         dic = {p:data[:,i] for i,p in enumerate(parameters)}
         return h, dic
