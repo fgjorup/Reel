@@ -13,6 +13,12 @@ FOR %%i IN (python.exe) DO (
         PAUSE
     )
 )
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%~dp0\Reel.lnk');$s.TargetPath='%~dp0\Run_Reel.bat';$s.IconLocation='%~dp0\_lib\icons\Main.ico';$s.Save()"
 ECHO PAUSE >> Run_Reel.bat
 ECHO EXIT >> Run_Reel.bat
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%~dp0\Reel.lnk');$s.TargetPath='%~dp0\Run_Reel.bat';$s.IconLocation='%~dp0\_lib\icons\Main.ico';$s.Save()"
+SET /P _inp= Create taskbar shortcut? [y/n]: 
+IF "%_inp%"=="y" GOTO :y
+GOTO :n
+:y
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('%AppData%\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Reel.lnk');$s.TargetPath='%~dp0\Run_Reel.bat';$s.IconLocation='%~dp0\_lib\icons\Main.ico';$s.Save()"
+:n
