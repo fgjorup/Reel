@@ -162,7 +162,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>*.xye</string>
+    <string>*.xye *.xy</string>
    </property>
   </action>
   <action name="actionAbout">

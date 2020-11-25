@@ -1,3 +1,7 @@
+"""
+Last update: 25/11/2020
+Frederik H. Gjørup
+"""
 import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '_lib'))
@@ -849,12 +853,12 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             path = ''
             if not path:
                 path = QtCore.QDir.currentPath() 
-            files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xye files', path , '*.xye')
+            files, _ =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select .xye files', path , '*.xye *.xy')
         else:
             path = os.path.dirname(files[0])
         if len(files)<1:
             return
-        if files[0].endswith('.xye'):
+        if files[0].endswith('.xye') or files[0].endswith('.xy'):
             progress = self.progressWindow("Reading files", "Abort", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
             im =[[],[],[]]
             for i, file in enumerate(files):
