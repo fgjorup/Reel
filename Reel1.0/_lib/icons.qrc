@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/OpenFile.png</file>
+        <file>icons/AddFile.png</file>
+        <file>icons/SaveFile.png</file>
+        <file>icons/Update.png</file>
+        <file>icons/Main.png</file>
+        <file>icons/Lambda.png</file>
+        <file>icons/Autorange.png</file>
+        <file>icons/Next.png</file>
+        <file>icons/Previous.png</file>
+        <file>icons/Delete.png</file>
+        <file>icons/DeleteAll.png</file>
+    </qresource>
+</RCC>

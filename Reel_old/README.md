@@ -9,19 +9,11 @@ Please run the setup.bat the first time you use the program. After that, run it 
 If the program does not open, check that the path to python.exe in "run_Reel.bat" line 5 is valid.
 
 Files are opened from *Files->Open* by selected the desired files in the dialog box. **NB:** The file order might depend on the sorting order of the current folder!
-Open several datasets by clicking the *Add dataset* button, and change between them by clicking their names, the *Next* or *Previous* buttons, or with ctrl+arrow keys.
 
-"Reel" through frames by dragging the green lines, either in the *Surface* plots or in the *Parameter* plot, or by using the arrow keys.
-
-Select which parameters to plot and which axis to plot them on in the *Parameter plot* menu.
-
-You can change the user defined default settings by editing the *ReelUserSettings.py* file in the *_lib* folder, and restore the default settings from the *Help* menu in Reel.
-
-### Data formats ###
-Reel accepts several common data formats, but for the full range of option, use the *.xyy* format, as described in the *Template_xyy_guide.pdf*.
+"Reel" through frames by dragging the green lines, either in the *Surface* plots or in the *Parameter* plot.
 
 ### MAC Users ###
-Open a terminal in the program folder and run "Refinement_evaluator_ver1.0.py" in python.
+Open a terminal in the program folder and run "Refinement_evaluator.py" in python.
 
 ### Requirements ###
 Python 3.8.3 (Other versions of python 3 and modules might still work)  
@@ -29,9 +21,8 @@ Non-built-in python modules:
 Module | Version | pip install command
 ------ | ------- | -------------------
 PyQt5 | v. 5.14.2 | pip install PyQt5
-pyqtgraph | v. 0.11.1 | pip install pyqtgraph
-matplotlib | v. 3.3.3 | pip install matplotlib
-numpy | v. 1.19.5 | pip install numpy
-scipy | v. 1.6.0 | pip install scipy
+pyqtgraph | v. 0.11.0rc0 | pip install pyqtgraph
+matplotlib | v. 3.2.1 | pip install matplotlib
+numpy | v. 1.18.4+mkl | pip install numpy
 
 \+ Requirements imposed by the modules. See `pip show [module]` for more information.

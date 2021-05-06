@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1054</width>
+    <height>748</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Reel</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/icons/Main.png</normaloff>:/icons/Main.png</iconset>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <property name="statusTip">
+   <string/>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox_pattern">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>200</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Diffraction pattern</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QTabWidget" name="tabWidget_pattern">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_pat">
+          <attribute name="title">
+           <string>Pattern</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_pat"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_sli">
+          <attribute name="title">
+           <string>Slice</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_sli"/>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>200</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Parameters</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout_par"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QGroupBox" name="groupBox_surf">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>200</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Surface plots</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item row="0" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout_surf"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1054</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_files"/>
+    <addaction name="actionAdd_files"/>
+    <addaction name="actionRemove_dataset"/>
+    <addaction name="actionRemove_all_datasets"/>
+    <addaction name="actionSet_wavelength"/>
+    <addaction name="separator"/>
+    <addaction name="actionUpdate"/>
+    <addaction name="actionAuto_range"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="separator"/>
+    <addaction name="actionRestore_default"/>
+   </widget>
+   <widget class="QMenu" name="menuParameter_plot">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="title">
+     <string>Parameter plot</string>
+    </property>
+    <widget class="QMenu" name="menuPrimary_axis">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Primary axis</string>
+     </property>
+     <addaction name="actionNone"/>
+    </widget>
+    <widget class="QMenu" name="menuSecondary_axis">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Secondary axis</string>
+     </property>
+     <addaction name="actionTemperature_K"/>
+    </widget>
+    <addaction name="menuPrimary_axis"/>
+    <addaction name="menuSecondary_axis"/>
+   </widget>
+   <widget class="QMenu" name="menuSurface_plots">
+    <property name="title">
+     <string>Surface plots</string>
+    </property>
+    <widget class="QMenu" name="menuScaling_surf">
+     <property name="title">
+      <string>Scaling</string>
+     </property>
+     <addaction name="actionLinear_surf"/>
+     <addaction name="actionLog10_surf"/>
+     <addaction name="actionLogn_surf"/>
+     <addaction name="actionSqrt_surf"/>
+    </widget>
+    <addaction name="menuScaling_surf"/>
+    <addaction name="actionSubtract_background"/>
+   </widget>
+   <widget class="QMenu" name="menuPattern_plot">
+    <property name="title">
+     <string>Pattern plot</string>
+    </property>
+    <widget class="QMenu" name="menuScaling_pat">
+     <property name="title">
+      <string>Scaling</string>
+     </property>
+     <addaction name="actionLinear_pat"/>
+     <addaction name="actionLog10_pat"/>
+     <addaction name="actionLogn_pat"/>
+     <addaction name="actionSqrt_pat"/>
+    </widget>
+    <widget class="QMenu" name="menuSub_plots">
+     <property name="title">
+      <string>Sub plots</string>
+     </property>
+     <addaction name="actionnone"/>
+    </widget>
+    <addaction name="menuScaling_pat"/>
+    <addaction name="actionSubtract_background_pat"/>
+    <addaction name="separator"/>
+    <addaction name="menuSub_plots"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuSurface_plots"/>
+   <addaction name="menuPattern_plot"/>
+   <addaction name="menuParameter_plot"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionUpdate_2"/>
+   <addaction name="actionAuto_range_2"/>
+   <addaction name="actionSet_wavelength_2"/>
+   <addaction name="actionOpen_files_2"/>
+   <addaction name="actionAdd_files_2"/>
+   <addaction name="actionRemove_dataset_2"/>
+   <addaction name="actionRemove_all_datasets_2"/>
+   <addaction name="separator"/>
+   <addaction name="actionPrevious"/>
+   <addaction name="actionNext"/>
+   <addaction name="separator"/>
+  </widget>
+  <action name="actionUpdate_2">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Update.png</normaloff>:/icons/Update.png</iconset>
+   </property>
+   <property name="text">
+    <string>Update</string>
+   </property>
+   <property name="toolTip">
+    <string>Update the current dataset (F5)</string>
+   </property>
+   <property name="statusTip">
+    <string>Update the current dataset (F5)</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionOpen_xyy">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/OpenFile.png</normaloff>:/icons/OpenFile.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open *.xyy</string>
+   </property>
+  </action>
+  <action name="action_OpenCSV">
+   <property name="text">
+    <string>*.csv</string>
+   </property>
+   <property name="statusTip">
+    <string>Open a comma-separated values file</string>
+   </property>
+  </action>
+  <action name="action_OpenXYY">
+   <property name="text">
+    <string>*.xyy</string>
+   </property>
+   <property name="statusTip">
+    <string>Open custom multi-column .xyy files</string>
+   </property>
+  </action>
+  <action name="action_OpenPRF">
+   <property name="text">
+    <string>*.prf</string>
+   </property>
+   <property name="statusTip">
+    <string>Open FullProf .prf files</string>
+   </property>
+  </action>
+  <action name="action_OpenDAT">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>*.dat</string>
+   </property>
+   <property name="statusTip">
+    <string>Open [2θ, I, σ] or [start, step, stop] .dat files</string>
+   </property>
+  </action>
+  <action name="action_OpenXYE">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>*.xye *.xy</string>
+   </property>
+   <property name="statusTip">
+    <string>Open two- or three-column .xye or .xy files</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="action_OpenESG">
+   <property name="text">
+    <string>*.esg</string>
+   </property>
+  </action>
+  <action name="action_OpenPAR">
+   <property name="text">
+    <string>*.par</string>
+   </property>
+  </action>
+  <action name="action_OpenPar">
+   <property name="text">
+    <string>*.par</string>
+   </property>
+   <property name="statusTip">
+    <string>Open MAUD .par file and subsequent .fit files</string>
+   </property>
+  </action>
+  <action name="actionNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>none</string>
+   </property>
+  </action>
+  <action name="actionTemperature_K">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>none</string>
+   </property>
+  </action>
+  <action name="actionSet_wavelength">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Lambda.png</normaloff>:/icons/Lambda.png</iconset>
+   </property>
+   <property name="text">
+    <string>Set wavelength</string>
+   </property>
+   <property name="statusTip">
+    <string>Set manual wavelength</string>
+   </property>
+  </action>
+  <action name="actionOpen_files">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/OpenFile.png</normaloff>:/icons/OpenFile.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open dataset</string>
+   </property>
+  </action>
+  <action name="actionRestore_default">
+   <property name="text">
+    <string>Restore default</string>
+   </property>
+  </action>
+  <action name="actionLinear_surf">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Linear</string>
+   </property>
+   <property name="toolTip">
+    <string>linear</string>
+   </property>
+   <property name="statusTip">
+    <string>Linear</string>
+   </property>
+  </action>
+  <action name="actionLog10_surf">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Log₁₀</string>
+   </property>
+   <property name="iconText">
+    <string>Log₁₀</string>
+   </property>
+   <property name="toolTip">
+    <string>log10</string>
+   </property>
+   <property name="statusTip">
+    <string>Base 10 logarithm</string>
+   </property>
+  </action>
+  <action name="actionLogn_surf">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Logₙ</string>
+   </property>
+   <property name="toolTip">
+    <string>logn</string>
+   </property>
+   <property name="statusTip">
+    <string>Natural logarithm</string>
+   </property>
+  </action>
+  <action name="actionSqrt_surf">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>√</string>
+   </property>
+   <property name="iconText">
+    <string>√</string>
+   </property>
+   <property name="toolTip">
+    <string>sqrt</string>
+   </property>
+   <property name="statusTip">
+    <string>Square root</string>
+   </property>
+  </action>
+  <action name="actionLinear_pat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Linear</string>
+   </property>
+   <property name="toolTip">
+    <string>linear</string>
+   </property>
+  </action>
+  <action name="actionLog10_pat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Log₁₀</string>
+   </property>
+   <property name="toolTip">
+    <string>log10</string>
+   </property>
+  </action>
+  <action name="actionLogn_pat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Logₙ</string>
+   </property>
+   <property name="toolTip">
+    <string>logn</string>
+   </property>
+  </action>
+  <action name="actionSqrt_pat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>√</string>
+   </property>
+   <property name="toolTip">
+    <string>sqrt</string>
+   </property>
+  </action>
+  <action name="actionprev">
+   <property name="text">
+    <string>prev</string>
+   </property>
+  </action>
+  <action name="actionUpdate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Update.png</normaloff>:/icons/Update.png</iconset>
+   </property>
+   <property name="text">
+    <string>Update</string>
+   </property>
+  </action>
+  <action name="actionOpen_files_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/OpenFile.png</normaloff>:/icons/OpenFile.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open dataset</string>
+   </property>
+  </action>
+  <action name="actionSet_wavelength_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Lambda.png</normaloff>:/icons/Lambda.png</iconset>
+   </property>
+   <property name="text">
+    <string>Set wavelength</string>
+   </property>
+   <property name="statusTip">
+    <string>Set manual wavelength</string>
+   </property>
+  </action>
+  <action name="actionAdd_files_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/AddFile.png</normaloff>:/icons/AddFile.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add dataset</string>
+   </property>
+  </action>
+  <action name="actionAdd_files">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/AddFile.png</normaloff>:/icons/AddFile.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add dataset</string>
+   </property>
+  </action>
+  <action name="actionPrevious">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Previous.png</normaloff>:/icons/Previous.png</iconset>
+   </property>
+   <property name="text">
+    <string>Previous</string>
+   </property>
+   <property name="toolTip">
+    <string>Previous dataset (ctrl+left)</string>
+   </property>
+   <property name="statusTip">
+    <string>Previous dataset (ctrl+left)</string>
+   </property>
+  </action>
+  <action name="actionNext">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Next.png</normaloff>:/icons/Next.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next</string>
+   </property>
+   <property name="toolTip">
+    <string>Next dataset (ctrl+right)</string>
+   </property>
+   <property name="statusTip">
+    <string>Next dataset (ctrl+right)</string>
+   </property>
+  </action>
+  <action name="actionRemove_dataset_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Delete.png</normaloff>:/icons/Delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Remove dataset</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove current dataset</string>
+   </property>
+  </action>
+  <action name="actionRemove_all_datasets_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/DeleteAll.png</normaloff>:/icons/DeleteAll.png</iconset>
+   </property>
+   <property name="text">
+    <string>Remove all datasets</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove all datasets</string>
+   </property>
+  </action>
+  <action name="actionRemove_dataset">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Delete.png</normaloff>:/icons/Delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Remove dataset</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove current dataset</string>
+   </property>
+  </action>
+  <action name="actionRemove_all_datasets">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/DeleteAll.png</normaloff>:/icons/DeleteAll.png</iconset>
+   </property>
+   <property name="text">
+    <string>Remove all datasets</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove all datasets</string>
+   </property>
+  </action>
+  <action name="actionSubtract_background">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Subtract background</string>
+   </property>
+   <property name="statusTip">
+    <string>Subtract the calculated background from the observed and calculated surface plots - Purely cosmetic</string>
+   </property>
+  </action>
+  <action name="actionSubtract_background_pat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Subtract background</string>
+   </property>
+  </action>
+  <action name="actionnone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>none</string>
+   </property>
+  </action>
+  <action name="actionAuto_range">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Autorange.png</normaloff>:/icons/Autorange.png</iconset>
+   </property>
+   <property name="text">
+    <string>Auto range</string>
+   </property>
+   <property name="statusTip">
+    <string>Auto range all plots</string>
+   </property>
+  </action>
+  <action name="actionAuto_range_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Autorange.png</normaloff>:/icons/Autorange.png</iconset>
+   </property>
+   <property name="text">
+    <string>Auto range</string>
+   </property>
+   <property name="toolTip">
+    <string>Auto range all plots (space)</string>
+   </property>
+   <property name="statusTip">
+    <string>Auto range all plots (space)</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>
