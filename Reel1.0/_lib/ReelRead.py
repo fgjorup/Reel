@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 05/05/2021
+Last update: 07/06/2021
 Frederik H. Gjørup
 """
 try:
@@ -156,8 +156,15 @@ def readPAR(fname):
                         eta[n].append(e)
                         #End of datafile
                         if num<1: # Append nan in case of an empty datafile
-                            r[n][i].append(np.nan)
-                            I[n][i].append(np.nan)
+                            # r[n][i].append(np.nan)
+                            # I[n][i].append(np.nan)
+                            try:
+                                rmin=np.min(r[n][0])
+                                #print(rmin)
+                            except:
+                                rmin=0.0
+                            r[n][i].append(rmin)
+                            I[n][i].append(0)
                             enabled[-1] = 'false' # Failsafe disabling of the corresponding .fit file
                             
                         if r[n][i][0]>r[n][i][-1]: # Reverse order if appropriate
@@ -226,7 +233,7 @@ def readDAT(fname,temp=None,lamb=None,ts=None,t=None):
         for i in range(6):
             line = file.readline()
             if line.startswith('TEMP'):
-                temp = line.split()[-1]
+                temp = float(line.split()[-1])
             elif line.startswith('!Wavelength:'):
                 lamb = float(line.split()[-1])
             elif line.startswith('!Timestamp:'):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 05/05/2021
+Last update: 07/06/2021
 Frederik H. Gjørup
 """
 try:
@@ -17,7 +17,7 @@ except ModuleNotFoundError as error:
     raise
 
 from _lib.ReelMisc import roundup
-from _lib.AUColors import AUlight
+from _lib.AUColors import AUlight, getColor
 import ReelUserSettings as us
 
 def convertColormapMPtoPG(cmap):
@@ -188,6 +188,33 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
 
     def getVerticalLineVal(self):
         return self.vlines[0].value()
+    
+    def getScale(self):
+        return (self.hist.getLevels(), self.hist_2.getLevels())
+    
+    def setScale(self,scale):
+        lmin, lmax = scale[0]
+        dmin, dmax = scale[1]
+        self.hist.setLevels(min=lmin ,max=lmax)
+        self.hist_2.setLevels(min=dmin ,max=dmax)
+    
+    def getViewRect(self):
+        return self.views[0].viewRect()
+    
+    def setViewRange(self,vrect=None,xRange=None,yRange=None):
+        """
+        rect - (QRectF)
+        xRange - [xmin, xmax]
+        yRange - [ymin, ymax]
+        """
+        if not isinstance(vrect,type(None)):
+            self.views[0].setRange(vrect,padding=0.0)
+        elif not isinstance(xRange,type(None)):
+            self.views[0].setRange(xRange)
+        if not isinstance(yRange,type(None)):
+            self.views[0].setRange(yRange)
+            
+            
 #######################################################################################################################
 
 class PlotPatternWidget(pg.PlotWidget):
@@ -208,21 +235,26 @@ class PlotPatternWidget(pg.PlotWidget):
         
         self.psub = {}
     
-        self.colors = AUlight(exclude=('blue','red','gray'))
+        self._getColors(exclude=('red','blue','gray'))
         
+    def _getColors(self,user_colors=us.default_sub_plot_colors, exclude=()):
+        colors = [getColor(c) for c in user_colors]
+        colors += [getColor(c) for c in AUlight(exclude=exclude) if getColor(c) not in colors]
+        self.colors = colors
+
     def addSubplot(self,key=None):
         try:
-            color = self.colors.popitem()[1]
+            color = self.colors.pop(0)
         except KeyError:
-            self.colors = AUlight(exclude=('blue','red','gray'))
-            color = self.colors.popitem()[1]
+            self._getColors(exclude=('red','blue','gray'))
+            color = self.colors.pop(0)
         pen = pg.mkPen(color=color, style=QtCore.Qt.DashLine)
         self.psub[key]=self.plot(x=[0],y=[0], name=key, pen=pen)
 
     def removeSubplots(self):
         for item in self.psub.values():
             self.removeItem(item)
-        self.colors = AUlight(exclude=('blue','red','gray'))
+        self._getColors(exclude=('red','blue','gray'))
         
     def setSubplotData(self,key,x,y):    
         self.psub[key].setData(x,y)
@@ -258,22 +290,27 @@ class PlotSliceWidget(pg.PlotWidget):
         self.pres = self.plot(x=[0],y=[0], name='Residual', pen=pg.mkPen(color='b', width=0.5))
         
         self.psub = {}
-    
-        self.colors = AUlight(exclude=('blue','red','gray'))
+        
+        self._getColors(exclude=('red','blue','gray'))
+        
+    def _getColors(self,user_colors=us.default_sub_plot_colors, exclude=()):
+        colors = [getColor(c) for c in user_colors]
+        colors += [getColor(c) for c in AUlight(exclude=exclude) if getColor(c) not in colors]
+        self.colors = colors
         
     def addSubplot(self,key=None):
         try:
-            color = self.colors.popitem()[1]
+            color = self.colors.pop(0)
         except KeyError:
-            self.colors = AUlight(exclude=('blue','red','gray'))
-            color = self.colors.popitem()[1]
+            self._getColors(exclude=('red','blue','gray'))
+            color = self.colors.pop(0)
         pen = pg.mkPen(color=color, style=QtCore.Qt.DashLine)
         self.psub[key]=self.plot(x=[0],y=[0], name=key, pen=pen)
 
     def removeSubplots(self):
         for item in self.psub.values():
             self.removeItem(item)
-        self.colors = AUlight(exclude=('blue','red','gray'))
+        self._getColors(exclude=('red','blue','gray'))
         
     def setSubplotData(self,key,x,y):    
         self.psub[key].setData(x,y)
@@ -334,7 +371,10 @@ class PlotParametersWidget(pg.PlotWidget):
         self.pens = {}
         self.colors = {}
         self.symbols = {}
-        self.colorList = AUlight()#exclude=('blue','red','gray'))
+        
+        #make a list of the unused colors from AUlight
+        self.colorList = [getColor(c) for c in AUlight() if getColor(c) not in [getColor(s['color']) for s in us.styles.values()]]
+            
         self.symbolList = ['o','s','t','d','+'] # Symbols:  * ‘o’ circle (default) * ‘s’ square * ‘t’ triangle * ‘d’ diamond * ‘+’ plus *
             
     def addPrimaryPlot(self,key):
@@ -418,8 +458,9 @@ class PlotParametersWidget(pg.PlotWidget):
             color = self.colors[key]
         except KeyError:
             if len(self.colorList)<1:
-                self.colorList = AUlight()
-            color = self.colorList.popitem()[1]
+                #make a list of the unused colors from AUlight
+                self.colorList = [getColor(c) for c in AUlight() if getColor(c) not in [getColor(s['color']) for s in us.styles.values()]]
+            color = self.colorList.pop(0)
             self.colors[key] = color
         return color
     
@@ -454,9 +495,10 @@ class PlotParametersWidget(pg.PlotWidget):
             style = us.styles[key]
             label = style['label']
             try:
-                color = self.colorList.pop(style['color'])
+                color = getColor(style['color'])
             except:
-                color = AUlight()[style['color']]
+                #default to gray
+                color = getColor('gray')
             lineStyle = lineStyles[style['lineStyle']]
             pen = pg.mkPen(color=color,
                            style=lineStyle)

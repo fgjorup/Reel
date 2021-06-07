@@ -183,6 +183,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         im = self.im[index]
         h_pos = round(self.miw.getHorizontalLineVal(),2)
         v_pos = round(self.miw.getVerticalLineVal(),2)
+        scale = self.miw.getScale()
+        vrect = self.miw.getViewRect()
         self.setMultiImages(tth,im)
         self.setSubplotActions()
         self.updateSubplots()
@@ -190,6 +192,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.initParameterPlot()
         [self.miw.vlines[i].setValue(v_pos) for i in range(3)]
         [self.miw.hlines[i].setValue(h_pos) for i in range(3)]
+        self.miw.setScale(scale)
+        self.miw.setViewRange(vrect)
         self.parw.updateVline(im.shape[2]-h_pos+0.5)
         self.showCurrentWavelength()
     
@@ -523,15 +527,16 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         index = self.dataset_index
         old_primary = self.getPrimaryParam()
         old_secondary = self.getSecondaryParam()
-        if len(old_primary)<1:
+        params = self.param[index]
+        if len(old_primary)<2 and len(params)>1:
             old_primary = us.default_primary_parameter_plot
-        if len(old_secondary)<1:
+        if len(old_secondary)<2 and len(params)>1:
             old_secondary = us.default_secondary_parameter_plot
         self.menuPrimary_axis.clear()
         self.menuSecondary_axis.clear()
         #param_actions = [QtWidgets.QAction(param) for param in self.param]
         menu = self.menuPrimary_axis
-        param_actions = [menu.addAction(param) for param in self.param[index]]
+        param_actions = [menu.addAction(param) for param in params]
         for action in param_actions:
             action.setCheckable(True)
             action.triggered.connect(self.initParameterPlot)
@@ -833,7 +838,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             im[0].append(yobs)
             im[1].append(ycal)
             im[2].append(res)
-            bgr.append(data.pop('Background'))
+            #bgr.append(data.pop('Background'))
+            bgr.append(data['Background'])
             for key in data:
                 try:
                     sub_plots[key].append(data[key])

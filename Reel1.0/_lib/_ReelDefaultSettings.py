@@ -14,6 +14,7 @@ default_pattern_scale = 'linear' # 'linear', 'log10', 'logn', 'sqrt'
 default_slice_integration_interval = (0,0) # integrate around index i from [i+x : i+(x+1)]
 default_pattern_background_subtraction = False
 default_sub_plots = ''
+default_sub_plot_colors = ['yellow', 'turquoise', 'purple', 'dark gray','green'] # See note at bottom
 
 # Surface plots
 default_surface_scale = 'linear' # 'linear', 'log10', 'logn', 'sqrt'
@@ -27,7 +28,7 @@ default_secondary_parameter_plot = ['Temperature (°C)','Temperature (K)']
 primary_parameter_axis_label = 'Primary axis'
 secondary_parameter_axis_label = 'Secondary axis'  
 styles = {'R_wp'            :{'label'     :'<html>R<sub>wp</sub></html>',
-                             'color'     :'green',
+                             'color'     :'dark green',
                              'symbol'    :'o',
                              'symbolSize':4,
                              'lineStyle' :'-',
@@ -57,6 +58,8 @@ styles = {'R_wp'            :{'label'     :'<html>R<sub>wp</sub></html>',
                              'lineStyle' :'--',
                              'lineWidth' :1},}
 
-# colors:    'blue', 'purple', 'cyan', 'turquoise', 'green', 'yellow', 'orange', 'red', 'magenta', and 'gray'
 # symbols:   ‘o’ circle, ‘s’ square, ‘t’ triangle, ‘d’ diamond, ‘+’ plus
 # linestyle: '-', '--' , '.', '-.', or '-..'
+# colors:    0-255 rgb color as tuple or one of the following keywords:
+#            'blue', 'purple', 'cyan', 'turquoise', 'green', 'yellow', 'orange', 'red', 'magenta', or 'gray'
+#            or any of the above, preceded by 'dark ' (i.e. 'dark blue')
