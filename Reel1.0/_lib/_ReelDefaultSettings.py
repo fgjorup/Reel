@@ -19,8 +19,8 @@ default_sub_plot_colors = ['yellow', 'turquoise', 'purple', 'dark gray','green']
 # Surface plots
 default_surface_scale = 'linear' # 'linear', 'log10', 'logn', 'sqrt'
 default_surface_background_subtraction = False
-default_linear_colormap = 'cividis' # For additional colormaps go to https://matplotlib.org/stable/tutorials/colors/colormaps.html
-default_divergent_colormap = 'bwr' 
+default_linear_colormap = 'cividis' # For additional colormaps go to https://matplotlib.org/stable/tutorials/colors/colormaps.html - Use "_r" to reverse color order e.g. 'bwr_r'
+default_divergent_colormap = 'RdBu_r' 
 
 # Parameter plot
 default_primary_parameter_plot = ['R_wp','R_p']
