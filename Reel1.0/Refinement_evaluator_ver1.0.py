@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 05/05/2021
+Last update: 22/06/2021
 Frederik H. Gjørup
 """
 
 """
-split par
+To-do
+- Open multiple datasets in one dialog session (next,cancel,done dialog buttons)
+
 """
 import os
 import sys
@@ -104,7 +106,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.scale_surf = us.default_surface_scale
         self.scale_pat = us.default_pattern_scale
         self.initScale()
-    
+
     def keyPressEvent(self,event):
         if event.modifiers() == Qt.ControlModifier:
             if event.key() == Qt.Key_Left:
@@ -183,6 +185,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         im = self.im[index]
         h_pos = round(self.miw.getHorizontalLineVal(),2)
         v_pos = round(self.miw.getVerticalLineVal(),2)
+        scale = self.miw.getScale()
+        vrect = self.miw.getViewRect()
         self.setMultiImages(tth,im)
         self.setSubplotActions()
         self.updateSubplots()
@@ -190,6 +194,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.initParameterPlot()
         [self.miw.vlines[i].setValue(v_pos) for i in range(3)]
         [self.miw.hlines[i].setValue(h_pos) for i in range(3)]
+        self.miw.setScale(scale)
+        self.miw.setViewRange(vrect)
         self.parw.updateVline(im.shape[2]-h_pos+0.5)
         self.showCurrentWavelength()
     
@@ -523,15 +529,16 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         index = self.dataset_index
         old_primary = self.getPrimaryParam()
         old_secondary = self.getSecondaryParam()
-        if len(old_primary)<1:
+        params = self.param[index]
+        if len(old_primary)<2 and len(params)>1:
             old_primary = us.default_primary_parameter_plot
-        if len(old_secondary)<1:
+        if len(old_secondary)<2 and len(params)>1:
             old_secondary = us.default_secondary_parameter_plot
         self.menuPrimary_axis.clear()
         self.menuSecondary_axis.clear()
         #param_actions = [QtWidgets.QAction(param) for param in self.param]
         menu = self.menuPrimary_axis
-        param_actions = [menu.addAction(param) for param in self.param[index]]
+        param_actions = [menu.addAction(param) for param in params]
         for action in param_actions:
             action.setCheckable(True)
             action.triggered.connect(self.initParameterPlot)
@@ -821,19 +828,35 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         progress = self.progressWindow("Reading files", "Cancel", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
         im = [[],[],[]]
         bgr, temp, lambd, filenames, comments = [], [], [], [], []
-        sub_plots, param = {}, {'R_p':[]}
+        dic, sub_plots, param = {}, {}, {'R_p':[]}
             
         for i, file in enumerate(files):
             progress.setValue(i)
             header, data = readXYY(file)
+            # "tth" and "Y_obs" are the only mandatory columns
             tth = data.pop('tth')
             yobs = data.pop('Y_obs')
-            ycal = data.pop('Y_calc')
-            res = data.pop('Y_res')
+            keys = list(data.keys())
+            # get data with special meaning
+            if 'Y_calc' in keys:
+                ycal = data.pop('Y_calc')
+            else:
+                ycal = np.full(yobs.shape,0,dtype=float)
+            if 'Y_res' in keys:
+                res = data.pop('Y_res')
+            elif np.any(ycal>0):
+                res = yobs-ycal
+            else:
+                res = np.full(yobs.shape,0,dtype=float)
+            if 'Background' in keys:
+                bgr.append(data['Background'])
+            else:
+                bgr.append(np.full(yobs.shape,0,dtype=float))
+                
             im[0].append(yobs)
             im[1].append(ycal)
             im[2].append(res)
-            bgr.append(data.pop('Background'))
+                
             for key in data:
                 try:
                     sub_plots[key].append(data[key])

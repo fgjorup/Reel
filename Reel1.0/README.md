@@ -2,7 +2,7 @@
 Tool for visualizing Rietveld refinement results
 By Frederik Gjørup
 
-The software provided here is intended only for internal use at Department of Chemistry, Aarhus University, and should not be distributed outside of the institute without the consent of the author.    
+The software provided here is intended only for internal use at Department of Chemistry, Aarhus University, and should not be distributed outside of the institute without the consent of the author.  
 
 ### Running the program ###
 Please run the setup.bat the first time you use the program. After that, run it by running the "run_Reel.bat" file or double-clicking the corresponding short-cut.  
@@ -18,7 +18,7 @@ Select which parameters to plot and which axis to plot them on in the *Parameter
 You can change the user defined default settings by editing the *ReelUserSettings.py* file in the *_lib* folder, and restore the default settings from the *Help* menu in Reel.
 
 ### Data formats ###
-Reel accepts several common data formats, but for the full range of option, use the *.xyy* format, as described in the *Template_xyy_guide.pdf*.
+Reel accepts several common data formats, but for the full range of option, use the *.xyy* format, as described in the *Reel1.0 Quick Guide.pdf*.
 
 ### MAC Users ###
 Open a terminal in the program folder and run "Refinement_evaluator_ver1.0.py" in python.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 12/01/2021
+Last update: 07/06/2021
 Frederik H. Gjørup
 """
 
@@ -45,3 +45,25 @@ def AUdark(exclude=()):
     for ex in exclude:
         AU_colors.pop(ex)
     return AU_colors
+
+def getColor(color,alpha=None,rgb_0to1=False):
+    """Accepts a 0-255 rgb or rgba color as tuple or one of the following keywords:
+        'blue', 'purple', 'cyan', 'turquoise', 'green', 'yellow', 'orange', 'red', 'magenta', or 'gray'
+    or any of the above, preceded by 'dark ' (i.e. 'dark blue').
+    
+    alpha    - set the alpha-channel (int or float)
+    rgb_0to1 - toggle 0-1 rgb or rgba format (bool) 
+    
+    return 0-255 rgb or rgba color as tuple.
+    """
+    if isinstance(color,tuple):
+        color = color
+    elif color.startswith('dark'):
+        color = AUdark()[color.strip('dark ')]
+    else:
+        color = AUlight()[color]
+    if isinstance(alpha,(int,float)):
+        color = tuple([*color[0:3],alpha])
+    if rgb_0to1:
+        color = tuple([round(c/255,4) for c in color])
+    return color
