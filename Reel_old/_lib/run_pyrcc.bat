@@ -1,1 +1,0 @@
-C:\WPy64-3830\python-3.8.3.amd64\Scripts\pyrcc5.exe icons.qrc -o icons_rc.py
