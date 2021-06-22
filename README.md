@@ -15,7 +15,7 @@ Open several datasets by clicking the *Add dataset* button, and change between t
 
 Select which parameters to plot and which axis to plot them on in the *Parameter plot* menu.
 
-You can change the user defined default settings by editing the *ReelUserSettings.py* file in the *_lib* folder, and restore the default settings from the *Help* menu in Reel.
+You can change the user defined default settings by editing the *ReelUserSettings.py* file, and restore the default settings from the *Help* menu in Reel.
 
 ### Data formats ###
 Reel accepts several common data formats, but for the full range of option, use the *.xyy* format, as described in the *Reel1.0 Quick Guide.pdf*.
