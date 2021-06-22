@@ -18,7 +18,7 @@ Select which parameters to plot and which axis to plot them on in the *Parameter
 You can change the user defined default settings by editing the *ReelUserSettings.py* file in the *_lib* folder, and restore the default settings from the *Help* menu in Reel.
 
 ### Data formats ###
-Reel accepts several common data formats, but for the full range of option, use the *.xyy* format, as described in the *Template_xyy_guide.pdf*.
+Reel accepts several common data formats, but for the full range of option, use the *.xyy* format, as described in the *Reel1.0 Quick Guide.pdf*.
 
 ### MAC Users ###
 Open a terminal in the program folder and run "Refinement_evaluator_ver1.0.py" in python.
