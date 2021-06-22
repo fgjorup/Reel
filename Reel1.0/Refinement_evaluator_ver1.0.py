@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 05/05/2021
+Last update: 22/06/2021
 Frederik H. Gjørup
 """
 
 """
-split par
+To-do
+- Open multiple datasets in one dialog session (next,cancel,done dialog buttons)
+
 """
 import os
 import sys
@@ -104,7 +106,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.scale_surf = us.default_surface_scale
         self.scale_pat = us.default_pattern_scale
         self.initScale()
-    
+
     def keyPressEvent(self,event):
         if event.modifiers() == Qt.ControlModifier:
             if event.key() == Qt.Key_Left:
@@ -826,20 +828,35 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         progress = self.progressWindow("Reading files", "Cancel", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
         im = [[],[],[]]
         bgr, temp, lambd, filenames, comments = [], [], [], [], []
-        sub_plots, param = {}, {'R_p':[]}
+        dic, sub_plots, param = {}, {}, {'R_p':[]}
             
         for i, file in enumerate(files):
             progress.setValue(i)
             header, data = readXYY(file)
+            # "tth" and "Y_obs" are the only mandatory columns
             tth = data.pop('tth')
             yobs = data.pop('Y_obs')
-            ycal = data.pop('Y_calc')
-            res = data.pop('Y_res')
+            keys = list(data.keys())
+            # get data with special meaning
+            if 'Y_calc' in keys:
+                ycal = data.pop('Y_calc')
+            else:
+                ycal = np.full(yobs.shape,0,dtype=float)
+            if 'Y_res' in keys:
+                res = data.pop('Y_res')
+            elif np.any(ycal>0):
+                res = yobs-ycal
+            else:
+                res = np.full(yobs.shape,0,dtype=float)
+            if 'Background' in keys:
+                bgr.append(data['Background'])
+            else:
+                bgr.append(np.full(yobs.shape,0,dtype=float))
+                
             im[0].append(yobs)
             im[1].append(ycal)
             im[2].append(res)
-            #bgr.append(data.pop('Background'))
-            bgr.append(data['Background'])
+                
             for key in data:
                 try:
                     sub_plots[key].append(data[key])
