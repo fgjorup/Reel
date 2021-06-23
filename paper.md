@@ -26,7 +26,7 @@ The ever-growing  community for parameter-resolved x-ray and neutron diffraction
 
 `Reel1.0` is a Python based GUI, based on the `PyQt5` and `pyqtgraph` packages. The graphical interface is intended to make `Reel1.0` appealing to a broad audience (within the community), even for users with limited programming knowledge. User-friendliness is a key feature, as `Reel1.0` is a visualization tool, intended to be used on combination with other refinement software, such as TOPAS[@topas] or FullProf[@fullprof], and with room for expansion in the future.
 
-`Reel1.0`is intended for users working with large x-ray and neutron diffraction datasets, such as in-situ and operando studies, across several scientific fields (chemistry, physics, materials science). The simplistic interface, efficiency, and user-friendliness of `Reel1.0` will allow the powder diffraction community to pursue increasingly advanced parameter-resolved experiments and the modeling of these.
+`Reel1.0` is intended for users working with large x-ray and neutron diffraction datasets, such as in-situ and operando studies, across several scientific fields (chemistry, physics, materials science). The simplistic interface, efficiency, and user-friendliness of `Reel1.0` will allow the powder diffraction community to pursue increasingly advanced parameter-resolved experiments and the modeling of these.
 
 # Acknowledgements
 
