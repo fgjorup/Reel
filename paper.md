@@ -20,7 +20,7 @@ bibliography: paper.bib
 ---
 
 # Summary
-The ever-growing  community for parameter-resolved x-ray and neutron diffraction, spurred by the rapid improvements in both detectors and sources for large-scale facilities, gives rise to the need for a fast and efficient evaluation approach for the large quantities of data produced during such experiments. As diffraction scientists we need to be able to compare both our raw data and our refined models in a consistent and user-friendly way. This is particularly true when refining in parameter-space (parametric refinement), where parameters such as time, temperature, field strength, pressure, etc. might be included in the models[@evans]. Our proposed strategy focus on 2D visualizations (heatmaps) of the data, in order to qualitatively evaluate the observed, calculated, and residual data in parameter-space, with cross-comparison to key parameters.  
+The ever-growing  community for parameter-resolved x-ray and neutron diffraction, spurred by the rapid improvements in both detectors and sources for large-scale facilities, gives rise to the need for a fast and efficient evaluation approach for the large quantities of data produced during such experiments. As diffraction scientists we need to be able to compare both our raw data and our refined models in a consistent and user-friendly way. This is particularly true when refining in parameter-space (parametric refinement), where parameters such as time, temperature, field strength, pressure, etc. might be included in the models. Our proposed strategy focus on 2D visualizations (heatmaps) of the data, in order to qualitatively evaluate the observed, calculated, and residual data in parameter-space, with cross-comparison to key parameters.  
 
 # Statement of need
 
