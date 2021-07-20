@@ -1,24 +1,24 @@
 
 ---
-title: 'Reel1.0 - A visualization tool for evaluating powder diffraction refinements'
-tags:
-  - Python
-  - diffraction
-  - TOPAS
-  - Rietveld
-  - pxrd
-authors:
+title: 'Reel1.0 - A visualization tool for evaluating powder diffraction refinements'  
+tags:  
+  - Python  
+  - diffraction  
+  - TOPAS  
+  - Rietveld  
+  - pxrd  
+authors:  
 - name: Frederik H. Gjørup
-    orcid: 0000-0003-3902-0247
-    affiliation: "1"
+  orcid: 0000-0003-3902-0247
+  affiliation: "1"
 
-  - name: Mathias Mørch
-    orcid: 0000-0002-8022-5538
-    affiliation: "1"
+- name: Mathias Mørch
+  orcid: 0000-0002-8022-5538
+  affiliation: "1"
 
-  - name: Mogens Christensen
-    orcid: 0000-0001-6805-1232
-    affiliation: "1"
+- name: Mogens Christensen
+  orcid: 0000-0001-6805-1232
+  affiliation: "1"
 
 affiliations:
  - name: Department of Chemistry and Interdisciplinary Nanoscience Center (iNANO), Aarhus University, Langelandsgade 140, 8000 Aarhus C, Denmark
