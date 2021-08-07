@@ -2,8 +2,6 @@
 Tool for visualizing Rietveld refinement results
 By Frederik Gjørup
 
-The software provided here is intended only for internal use at Department of Chemistry, Aarhus University, and should not be distributed outside of the institute without the consent of the author.  
-
 ### Running the program ###
 Please run the setup.bat the first time you use the program. After that, run it by running the "run_Reel.bat" file or double-clicking the corresponding short-cut.  
 If the program does not open, check that the path to python.exe in "run_Reel.bat" line 5 is valid.
