@@ -737,7 +737,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         if not isinstance(files,list):
             path = self.path
             if not path:
-                path = os.environ['USERPROFILE']
+                path = os.getenv('USERPROFILE','')
             if ext != '*.csv':
                 ext = us.default_file_extension
             filters = '*.xyy;;*.prf;;*.par;;*.dat;;*.xye *.xy;;*.csv'    
