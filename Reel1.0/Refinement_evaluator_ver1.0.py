@@ -249,7 +249,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
     def plotLogo(self):
         self.scale_surf, self.scale_pat = ['linear']*2
-        self.openFiles(files=['_lib\icons\Main.raw'],ext='*.raw')
+        fname = os.path.abspath('_lib/icons/Main.raw')
+        self.openFiles(files=[fname],ext='*.raw')
         # im = self.im[0][0]
         # x = np.arange(0,im.shape[0],1)
         # y = np.flip(np.nanmean(im,axis=0))
