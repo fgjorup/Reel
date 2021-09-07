@@ -24,12 +24,15 @@ Open a terminal in the program folder and run "Refinement_evaluator_ver1.0.py" i
 ### Requirements ###
 Python 3.8.3 (Other versions of python 3 and modules might still work)  
 Non-built-in python modules:  
-Module | Version | pip install command
------- | ------- | -------------------
-PyQt5 | v. 5.14.2 | pip install PyQt5
-pyqtgraph | v. 0.11.1 | pip install pyqtgraph
-matplotlib | v. 3.3.3 | pip install matplotlib
-numpy | v. 1.19.5 | pip install numpy
-scipy | v. 1.6.0 | pip install scipy
+| Module | Version | pip install command |
+| ------ | ------- | ------------------- |
+| PyQt5 | v. 5.14.2 | pip install PyQt5 |
+| pyqtgraph | v. 0.11.1 | pip install pyqtgraph |
+| matplotlib | v. 3.3.3 | pip install matplotlib |
+| numpy | v. 1.19.5 | pip install numpy |
+| scipy | v. 1.6.0 | pip install scipy |
 
 \+ Requirements imposed by the modules. See `pip show [module]` for more information.
+
+### Contributing, feedback, and support ###
+All users are welcome to provide feedback, report issues, or suggest changes to the program, either by creating a new issue on the GitHub [repository](https://github.com/fgjorup/Reel) or by contacting me at <fgjorup@chem.au.dk>.
