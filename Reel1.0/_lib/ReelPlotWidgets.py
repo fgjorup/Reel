@@ -29,8 +29,8 @@ def convertColormapMPtoPG(cmap):
 
 class MultiImageWidget(pg.GraphicsLayoutWidget):
     
-    sigHLineDragged = QtCore.Signal(object)
-    sigVLineDragged = QtCore.Signal(object)
+    sigHLineDragged = QtCore.pyqtSignal(object)
+    sigVLineDragged = QtCore.pyqtSignal(object)
     
     def __init__(self,n_images=1,labels=()):
         pg.GraphicsLayoutWidget.__init__(self)
@@ -331,7 +331,7 @@ class PlotSliceWidget(pg.PlotWidget):
 
 class PlotParametersWidget(pg.PlotWidget):
     
-    sigVLineDragged = QtCore.Signal(object)
+    sigVLineDragged = QtCore.pyqtSignal(object)
     
     def __init__(self):
         pg.PlotWidget.__init__(self)
