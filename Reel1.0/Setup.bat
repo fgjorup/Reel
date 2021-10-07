@@ -5,7 +5,7 @@ ECHO CD %~dp0 >> Run_Reel.bat
 ECHO ECHO Opening Reel 1.0... >> Run_Reel.bat
 FOR %%i IN (python.exe) DO (
     IF EXIST "%%~$PATH:i" (
-       ECHO %%~$PATH:i Refinement_evaluator_ver1.0.py >> Run_Reel.bat
+       ECHO "%%~$PATH:i" Refinement_evaluator_ver1.0.py >> Run_Reel.bat
     ) ELSE (
         ECHO python.exe Refinement_evaluator_ver1.0.py >> Run_Reel.bat
         ECHO ATTENTION!
