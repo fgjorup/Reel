@@ -106,7 +106,19 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.scale_surf = us.default_surface_scale
         self.scale_pat = us.default_pattern_scale
         self.initScale()
-
+        
+        if '-debug' in sys.argv:
+            self.openTestfiles()
+        
+    def openTestfiles(self):
+        path = os.path.abspath('_test_files')
+        test_sets = os.listdir(path)
+        for tset in test_sets:
+            ts_path = os.path.join(path,tset)
+            files = [os.path.join(ts_path,f) for f in os.listdir(ts_path) if f.endswith(tset)]
+            ext = '*.'+files[0].split('.')[-1]
+            self.addDataset(self,files=files,ext=ext)
+        
     def keyPressEvent(self,event):
         if event.modifiers() == Qt.ControlModifier:
             if event.key() == Qt.Key_Left:
@@ -199,7 +211,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.parw.updateVline(im.shape[2]-h_pos+0.5)
         self.showCurrentWavelength()
     
-    def addDataset(self,is_par=False):
+    def addDataset(self,is_par=False,files=None,ext=None):
         self.im.append(np.zeros((3,100,100)))
         self.tth.append(np.arange(0,100,1))
         self.files.append([''])
@@ -211,7 +223,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.datasets.append('')
         self.dataset_index = len(self.im)-1
         if is_par != True:
-            self.openFiles()
+            self.openFiles(files,ext)
     
     def removeDataset(self):
         if len(self.im)==1:
@@ -741,7 +753,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 path = os.getenv('USERPROFILE','')
             if ext != '*.csv':
                 ext = us.default_file_extension
-            filters = '*.xyy;;*.prf;;*.par;;*.dat;;*.xye *.xy;;*.csv'    
+            filters = '*.xyy;;*.prf;;*.dat;;*.xye *.xy;;*.csv'    
             filters = ext+';;'+';;'.join([x for x in filters.replace(ext,'').split(';;') if x])
             files, ext =  QtWidgets.QFileDialog.getOpenFileNames(self, 'Select files', path , filters)
         if len(files)<1:
@@ -760,7 +772,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                     im, tth, files, lambd, param, sub_plots, bgr, par_file, was_canceled = self.openPRF(files)
                 elif ext=='*.dat':
                     im, tth, files, lambd, param, sub_plots, bgr, par_file, was_canceled = self.openDAT(files)
-                elif ext=='*.xye *.xy':
+                elif ext=='*.xye *.xy' or ext=='*.xye' or ext=='*.xy':
                     im, tth, files, lambd, param, sub_plots, bgr, par_file, was_canceled = self.openXYE(files)
                 elif ext=='*.csv':
                     im, tth, files, lambd, param, sub_plots, bgr, par_file, was_canceled = self.openCSV(files[0])
