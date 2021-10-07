@@ -35,4 +35,6 @@ Non-built-in python modules:
 \+ Requirements imposed by the modules. See `pip show [module]` for more information.
 
 ### Contributing, feedback, and support ###
-All users are welcome to provide feedback, report issues, or suggest changes to the program, either by creating a new issue on the GitHub [repository](https://github.com/fgjorup/Reel) or by contacting me at <fgjorup@chem.au.dk>.
+You can open a series of test files intended for debugging by running `Refinement_evaluator_ver1.0.py -debug`. 
+
+All users are welcome to provide feedback, report issues, or suggest changes to the program, either by creating a new issue on the GitHub [repository](https://github.com/fgjorup/Reel) or by contacting me at <fgjorup@chem.au.dk>.  
