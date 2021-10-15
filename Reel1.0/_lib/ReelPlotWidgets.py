@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 07/06/2021
+Last update: 27/08/2021
 Frederik H. Gjørup
 """
+import os
 try:
     from PyQt5 import QtCore
     import pyqtgraph as pg
@@ -28,8 +29,8 @@ def convertColormapMPtoPG(cmap):
 
 class MultiImageWidget(pg.GraphicsLayoutWidget):
     
-    sigHLineDragged = QtCore.Signal(object)
-    sigVLineDragged = QtCore.Signal(object)
+    sigHLineDragged = QtCore.pyqtSignal(object)
+    sigVLineDragged = QtCore.pyqtSignal(object)
     
     def __init__(self,n_images=1,labels=()):
         pg.GraphicsLayoutWidget.__init__(self)
@@ -65,8 +66,8 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
                         minXRange=10, 
                         yMin=-5,
                         minYRange=10)
-
-            im = np.fromfile('_lib\icons\Main.raw', dtype='ubyte').reshape(230,230).astype(float)
+            fname = os.path.abspath('_lib/icons/Main.raw')
+            im = np.fromfile(fname, dtype='ubyte').reshape(230,230).astype(float)
             im = np.abs(im-im.max())
             data = np.flipud(np.rot90(im))
             if i<2:
@@ -330,7 +331,7 @@ class PlotSliceWidget(pg.PlotWidget):
 
 class PlotParametersWidget(pg.PlotWidget):
     
-    sigVLineDragged = QtCore.Signal(object)
+    sigVLineDragged = QtCore.pyqtSignal(object)
     
     def __init__(self):
         pg.PlotWidget.__init__(self)
