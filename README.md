@@ -2,7 +2,7 @@
 Tool for visualizing Rietveld refinement results
 By Frederik Gjørup
 
-### Citing Reel1.0###
+### Citing Reel1.0 ###
 The software is open and free for all as stated in the MIT license, however, we kindly ask users to cite the following reference, when relevant:  
 
 Gjørup, F. H., Mørch M., & Christensen, M. _Reel1. 0 - A visualization tool for evaluating powder diffraction refinements._ Journal of Open Source Software 6.66 (2021): 3546. DOI: [10.21105/joss.03546](https://doi.org/10.21105/joss.03546)
