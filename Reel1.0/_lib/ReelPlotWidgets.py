@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 27/08/2021
+Last update: 26/11/2021
 Frederik H. Gjørup
 """
 import os
@@ -37,7 +37,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         self._setLabels(labels)
         self.setBackground((25,25,25))
         #Create imageItems
-        self.images = [pg.ImageItem(border='w') for i in range(n_images)]     
+        self.images = [pg.ImageItem(border='w', axisOrder='row-major') for i in range(n_images)]     
         #Create histograms
         self.hist = pg.HistogramLUTItem()
         self.hist.gradient.setColorMap(convertColormapMPtoPG(cm.get_cmap(us.default_linear_colormap)))
@@ -150,7 +150,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         self.hist_2.setHistogramRange(-level,level)
     
     def setData(self,index, im):
-        xMax, yMax = im.shape
+        yMax, xMax = im.shape
         self.images[index].setImage(im)
         self.views[index].setLimits(xMin=-5, xMax=xMax+5,
                                     minXRange=10, 
@@ -159,7 +159,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         self.views[index].autoRange()
         [h.setBounds((-1,yMax+1)) for h in self.hlines]
         [v.setBounds((-1,xMax+1)) for v in self.vlines]
-    
+
     def autoRangeHistograms(self):
         self._setLinearRange()
         self._setDivergentRange()
@@ -183,7 +183,15 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             self.addLabel(label,color='w')
         if len(labels)>0:
             self.nextRow()
-
+    
+    def _getLabel(self,col):
+        """return LabelItem of specified coloumn"""
+        return self.getItem(0,col)
+    
+    def setLabel(self, col,text):
+        label = self._getLabel(col)
+        label.setText(text)
+        
     def getHorizontalLineVal(self):
         return self.hlines[0].value()
 
@@ -227,7 +235,7 @@ class PlotPatternWidget(pg.PlotWidget):
         self.setBackground((25,25,25))
         self.setLabel('left','Intensity (a.u.)')
         self.setLabel('bottom','2θ (°)')
-        self.addLegend()
+        self.legend = self.addLegend()
         self.setLimits(xMin=0, xMax=180)
         #Add plots
         self.pobs = self.plot(x=[0],y=[0], name='Observed', pen=None, symbol='o', symbolPen='r', symbolSize=2)
@@ -237,6 +245,19 @@ class PlotPatternWidget(pg.PlotWidget):
         self.psub = {}
     
         self._getColors(exclude=('red','blue','gray'))
+    
+    
+    def setObsLabel(self,text):
+        label = self.legend.getLabel(self.pobs)
+        label.setText(text)
+    
+    def setCalLabel(self,text):
+        label = self.legend.getLabel(self.pcal)
+        label.setText(text)
+    
+    def setResLabel(self,text):
+        label = self.legend.getLabel(self.pres)
+        label.setText(text)
         
     def _getColors(self,user_colors=us.default_sub_plot_colors, exclude=()):
         colors = [getColor(c) for c in user_colors]
