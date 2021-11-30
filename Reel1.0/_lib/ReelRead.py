@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 07/06/2021
+Last update: 26/11/2021
 Frederik H. Gjørup
 """
 try:
@@ -18,7 +18,7 @@ def readXYY(fname):
            line = f.readline() 
            header.append(line)
         parameters = f.readline().split()
-        data = np.loadtxt(f,dtype=float)
+        data = np.loadtxt(f,dtype='float32')
     h = {'Filename':header[0]}
     comments = header.index('COMMENTS\n')
     h['Comments']=''.join(header[comments+1:-1])
@@ -49,14 +49,14 @@ def readPRF(fname):
         file.readline()
         for i in range(int(header[1].split()[1])):
             content.append(file.readline().split()[0:5])
-    content = np.array(content, dtype = float)
+    content = np.array(content, dtype='float32')
     
     tth = content[:,0]
     yobs = content[:,1]
     ycal = content[:,2]
     res = content[:,3]
     bckg = content[:,4]
-    mask = np.array(mask, dtype = float)
+    mask = np.array(mask, dtype='float32')
     if len(mask)>0:
         excl_reg = (tth < mask[0,0]) | (tth > mask[0,1])
     else:
@@ -76,7 +76,7 @@ def readPrfAlt(fname):
     content = content.strip().strip('999.').split('999\n')
     header = content.pop(0)
     for n, s in enumerate(content):
-        s =  np.array([x.split() for x in s.strip().split('\n') if not x =='999'],dtype=float)
+        s =  np.array([x.split() for x in s.strip().split('\n') if not x =='999'],dtype='float32')
         tth.append(s[:,0])
         yobs.append(s[:,1])
         ycal.append(s[:,2])
@@ -207,9 +207,9 @@ def readFIT(fname):  #,dist,x_corr,y_corr):
             if '#' in line:
                 keys.append(line.split('#')[-1].strip())
             if not '_' in line:
-                data = np.array([line.split()],dtype=float)
+                data = np.array([line.split()],dtype='float32')
                 break
-        s = np.array([l.split() for l in f.readlines()],dtype=float)
+        s = np.array([l.split() for l in f.readlines()],dtype='float32')
         data = np.append(data,s,axis=0)
         if data[0,0]>data[1,0]:
             data = np.flipud(data)
@@ -218,13 +218,9 @@ def readFIT(fname):  #,dist,x_corr,y_corr):
 
 
 def readCSV(fname):
-    with open(fname,'r') as f:
-       content = f.read()
-    c = content.strip().split('\n')
-    rows = len(c)
-    tth = np.array(c[0].strip().split(','), dtype=float)
-    im = np.array(','.join(c[1:]).strip().split(','), dtype = float).reshape(rows-1,len(tth))
-    im = np.rot90(im,k=-1)
+    c = np.loadtxt(fname,dtype='float32',delimiter=',')
+    tth = c[0]
+    im = np.rot90(c[1:,:],k=-1)
     return tth, im
 
 
@@ -261,7 +257,7 @@ def readDatAlt(fname):
     sig = content.split()[len(tth):len(tth)*2]
     if len(sig)<len(tth):
         sig = np.array(I)**0.5
-    return tth, np.array(I,dtype=float), np.array(sig,dtype=float)
+    return tth, np.array(I,dtype='float32'), np.array(sig,dtype='float32')
 
 
 def readXYE(fname):
