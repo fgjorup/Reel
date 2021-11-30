@@ -35,8 +35,9 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
     
     def __init__(self,n_images=1,labels=()):
         pg.GraphicsLayoutWidget.__init__(self)
-        self.setBackground((25,25,25))
+        #pg.setConfigOption('leftButtonPan', False) # Toggle "mouse mode 1 button"
         
+        self.setBackground((25,25,25))
         # row 0
         self.nextCol()
         [self.addLabel(l,color='w') for l in labels]
@@ -245,6 +246,19 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         if not isinstance(yRange,type(None)):
             self.views[0].setRange(yRange)
             
+    def setMouseModes(self,mode=3):
+        if isinstance(mode,int):
+            mode = [mode]*3
+        for i,vb in enumerate(self.views):
+            if mode[i]==3:
+                mode[i] = vb.PanMode
+            else:
+                mode[i] = vb.RectMode
+            vb.setMouseMode(mode[i])
+    
+    def getMouseModes(self):
+        return [vb.state['mouseMode'] for vb in self.views]
+            
     def mouseDoubleClickEvent(self,event):
         # https://doc.qt.io/qt-5/qt.html#MouseButton-enum
         
@@ -259,6 +273,9 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
                     self._update_vline(suppress=True)
                     self._update_hline(suppress=True)
                     self.sigDoubleClicked.emit(self)
+        
+        elif event.button() == 4: # middle mouse button
+            self.autoRange()
             
 #######################################################################################################################
 
@@ -328,8 +345,29 @@ class PlotPatternWidget(pg.PlotWidget):
         
     def setResData(self,x,y):
          self.pres.setData(x,y)
-
-
+         
+    def setMouseModes(self,mode=None):
+        vb = self.getViewBox()
+        if mode==None: # switch current mode
+            mode = vb.state['mouseMode']
+            if mode == 1:
+                mode = 3
+            else:
+                mode=1
+        if mode==3:
+            mode = vb.PanMode
+        else:
+            mode = vb.RectMode
+        vb.setMouseMode(mode)
+    
+    def getMouseModes(self):
+        return self.getViewBox().state['mouseMode']
+    
+    def mouseDoubleClickEvent(self,event):
+        # https://doc.qt.io/qt-5/qt.html#MouseButton-enum
+        
+        if event.button() == 4: # middle mouse button
+            self.autoRange()
 
                     
                     
@@ -387,6 +425,29 @@ class PlotSliceWidget(pg.PlotWidget):
         
     def setResData(self,x,y):
          self.pres.setData(x,y)
+    
+    def setMouseModes(self,mode=None):
+        vb = self.getViewBox()
+        if mode==None: # switch current mode
+            mode = vb.state['mouseMode']
+            if mode == 1:
+                mode = 3
+            else:
+                mode=1
+        if mode==3:
+            mode = vb.PanMode
+        else:
+            mode = vb.RectMode
+        vb.setMouseMode(mode)
+    
+    def getMouseModes(self):
+        return self.getViewBox().state['mouseMode']
+    
+    def mouseDoubleClickEvent(self,event):
+        # https://doc.qt.io/qt-5/qt.html#MouseButton-enum
+        
+        if event.button() == 4: # middle mouse button
+            self.autoRange()
 
 #######################################################################################################################
 
@@ -573,7 +634,24 @@ class PlotParametersWidget(pg.PlotWidget):
             symbol = self._getSymbol(key)
             symbolSize = 4
         return label, pen, color, symbol, symbolSize
-            
+    
+    def setMouseModes(self,mode=None):
+        vb = self.getViewBox()
+        if mode==None: # switch current mode
+            mode = vb.state['mouseMode']
+            if mode == 1:
+                mode = 3
+            else:
+                mode=1
+        if mode==3:
+            mode = vb.PanMode
+        else:
+            mode = vb.RectMode
+        vb.setMouseMode(mode)
+    
+    def getMouseModes(self):
+        return self.getViewBox().state['mouseMode']
+        
     def mouseDoubleClickEvent(self,event):
         # https://doc.qt.io/qt-5/qt.html#MouseButton-enum
         
@@ -585,5 +663,7 @@ class PlotParametersWidget(pg.PlotWidget):
             self.updateVline(x)
             self._update_vline()
  
+        elif event.button() == 4: # middle mouse button
+            self.autoRange()
 
 

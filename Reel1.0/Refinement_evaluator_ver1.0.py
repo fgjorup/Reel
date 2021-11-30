@@ -9,6 +9,7 @@ To-do
 - Open multiple datasets in one dialog session (next,cancel,done dialog buttons)
 - Handle HDF5 files
 - Implement 1/d, r, and ToF axis
+- Export data as .csv
 
 """
 import os
@@ -109,6 +110,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.param = [{}]
         self.dev_from_mean = [False]  # use deviation from mean instead of calculated and residual
         
+        self.control_is_pressed = False
+        
         self.plotLogo()
         self.scale_surf = us.default_surface_scale
         self.scale_pat = us.default_pattern_scale
@@ -157,7 +160,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             self.addDataset(self,files=files,ext=ext)
         
     def keyPressEvent(self,event):
-        if event.modifiers() == Qt.ControlModifier:
+        if event.modifiers() == Qt.ShiftModifier:
             if event.key() == Qt.Key_Left:
                 self.previousDataset()
             elif event.key() == Qt.Key_Right:
@@ -179,10 +182,27 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 self.moveReelCursor(increment=-1)
             elif event.key() == Qt.Key_A:
                 self.autoRangeAll()
+            elif event.key() == Qt.Key_Control:
+                if not self.control_is_pressed:
+                    self.control_is_pressed = True
+                    self.setAllMouseModes()
+    
+    def keyReleaseEvent(self,event):
+        if event.key() == Qt.Key_Control:
+            self.control_is_pressed = False
+            self.setAllMouseModes()
+    
+    def setAllMouseModes(self):
+        widgets = [self.miw,self.ppw,self.psw,self.parw]
+        if self.control_is_pressed:
+            [w.setMouseModes(mode=1) for w in widgets]
+        else:
+            [w.setMouseModes(mode=3) for w in widgets]
     
     def mouseDoubleClickEvent(self,event):
         if event.button() == 4: # middle mouse button
             self.autoRangeAll()
+
             
     def autoRangeAll(self):
         self.miw.autoRange()
