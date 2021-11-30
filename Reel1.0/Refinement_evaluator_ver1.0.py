@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 26/11/2021
+Last update: 30/11/2021
 Frederik H. Gjørup
 """
 
@@ -8,9 +8,7 @@ Frederik H. Gjørup
 To-do
 - Open multiple datasets in one dialog session (next,cancel,done dialog buttons)
 - Handle HDF5 files
-- Set reel cursor positions with a click event
-- Improve surface plot axis scaling, possibly add y-axis
-- Implement Q, 1/d, r, and ToF axis
+- Implement 1/d, r, and ToF axis
 
 """
 import os
@@ -28,7 +26,7 @@ except ModuleNotFoundError as error:
         print('\n'+error.msg+'\nPlease use PIP to install\n')
     raise
     
-from _lib.ReelMisc import tth2Q, tth2d, scaleArray, gridInterpolation
+from _lib.ReelMisc import tth2Q, Q2tth, Q2d, tth2d, scaleArray, gridInterpolation, generateTicks
 from _lib.ReelPlotWidgets import MultiImageWidget, PlotPatternWidget, PlotSliceWidget, PlotParametersWidget
 from _lib.ReelRead import readCSV, readPRF, readPrfAlt, readXYY, readDAT, readXYE, readFIT, readPAR
 
@@ -49,6 +47,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
         self.actionSet_wavelength.triggered.connect(self.setManualWavelength)
         self.actionSet_wavelength_2.triggered.connect(self.setManualWavelength)# toolbar
+        
+        self.actionToggle_Q.triggered.connect(self.toggleQ)
         
         self.actionOpen_files.triggered.connect(self.openFiles)
         self.actionOpen_files_2.triggered.connect(self.openFiles) # toolbar
@@ -89,6 +89,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         
         self.miw.sigHLineDragged.connect(self.updatePatternPlot)
         self.miw.sigVLineDragged.connect(self.updateSlicePlot)
+        self.miw.sigDoubleClicked.connect(self.updateCrosshair)
         self.parw.sigVLineDragged.connect(self.updateHLine)
         for image in self.miw.images:
             image.hoverEvent = self.imageHoverEvent
@@ -173,12 +174,16 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             elif event.key() == Qt.Key_Right:
                 self.moveSliceCursor(increment=1)
             elif event.key() == Qt.Key_Up:
-                self.moveReelCursor(increment=-1)
-            elif event.key() == Qt.Key_Down:
                 self.moveReelCursor(increment=1)
+            elif event.key() == Qt.Key_Down:
+                self.moveReelCursor(increment=-1)
             elif event.key() == Qt.Key_A:
                 self.autoRangeAll()
     
+    def mouseDoubleClickEvent(self,event):
+        if event.button() == 4: # middle mouse button
+            self.autoRangeAll()
+            
     def autoRangeAll(self):
         self.miw.autoRange()
         self.parw.autoRange()
@@ -218,6 +223,12 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         [self.miw.vlines[i].setValue(v_pos+0.5) for i in range(3)]
         self.updateSlicePlot(1)
     
+    def updateCrosshair(self):
+        """update pattern and slice plot from new reel cursor crosshair position"""
+        index = self.tabWidget_pattern.currentIndex()
+        self.updatePatternPlot(index)
+        self.updateSlicePlot(index)
+    
     def showCurrentWavelength(self):
         index = self.dataset_index
         lambd = self.lambd[index]
@@ -230,13 +241,13 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
     
     def setSurfaceplotLabels(self,index):
         if self.dev_from_mean[index]:
-            self.miw.setLabel(1,'Mean')
-            self.miw.setLabel(3,'Deviation from mean')
+            self.miw.setLabel(2,'Mean')
+            self.miw.setLabel(4,'Deviation from mean')
             self.ppw.setCalLabel('Mean')
             self.ppw.setResLabel('Deviation from mean')
         else:
-            self.miw.setLabel(1,'Calculated')
-            self.miw.setLabel(3,'Residual')
+            self.miw.setLabel(2,'Calculated')
+            self.miw.setLabel(4,'Residual')
             self.ppw.setCalLabel('Calculated')
             self.ppw.setResLabel('Residual')
     
@@ -247,6 +258,9 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         v_pos = round(self.miw.getVerticalLineVal(),2)
         scale = self.miw.getScale()
         vrect = self.miw.getViewRect()
+        lambd = self.lambd[index]
+        if self.actionToggle_Q.isChecked() and isinstance(lambd,type(None)):
+            self.setManualWavelength()
         self.setSurfaceplotLabels(index)
         self.setMultiImages(tth,im)
         self.setSubplotActions()
@@ -259,6 +273,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.miw.setViewRange(vrect)
         self.parw.updateVline(im.shape[2]-h_pos+0.5)
         self.showCurrentWavelength()
+        
     
     def addDataset(self,is_par=False,files=None,ext=None):
         self.im.append(np.zeros((3,100,100)))
@@ -316,11 +331,6 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.scale_surf, self.scale_pat = ['linear']*2
         fname = os.path.abspath('_lib/icons/Main.raw')
         self.openFiles(files=[fname],ext='*.raw')
-        # im = self.im[0][0]
-        # x = np.arange(0,im.shape[0],1)
-        # y = np.flip(np.nanmean(im,axis=0))
-        # self.parw.addPrimaryPlot('Mean intensity')
-        # self.parw.setPrimaryData('Mean intensity',x,y)
         self.setWindowTitle('Reel')
         self.path = us.work_directory
         
@@ -388,20 +398,20 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         i = int(np.clip(i, 0, datapoints - 1))
         j = int(np.clip(j, 0, frames - 1))
         tth = self.tth[index][i]
-        obs, calc, res = [val[i, j] for val in im]
+        obs, calc, res = [val[i, frames-(j+1)] for val in im]
         lambd = self.lambd[index]
         if isinstance(lambd,float):
             Q = tth2Q(tth,lambd)
             d = tth2d(tth,lambd)
-            if self.dev_from_mean:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(frames-j,tth,Q,d,obs,calc,res))
+            if self.dev_from_mean[index]:
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(j,tth,Q,d,obs,calc,res))
             else:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,Q,d,obs,calc,res))
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(j,tth,Q,d,obs,calc,res))
         else:
-            if self.dev_from_mean:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(frames-j,tth,obs,calc,res))
+            if self.dev_from_mean[index]:
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(j,tth,obs,calc,res))
             else:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,obs,calc,res))
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(j,tth,obs,calc,res))
     
         #     self.statusbar.showMessage('Slice: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,Q,d,obs,calc,res))
         # else:
@@ -414,11 +424,18 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             return
         pos = event.pos()
         vpos = self.ppw.pobs.getViewBox().mapToView(pos)
-        tth, I = vpos.x(), vpos.y()
+        x, I = vpos.x(), vpos.y()
         lambd = self.lambd[index]
+        if self.actionToggle_Q.isChecked() and isinstance(lambd,float):
+            Q = x
+            tth = Q2tth(x,lambd)
+            d = Q2d(x,lambd)
+        else:
+            tth = x
+            if isinstance(lambd,float):
+                Q = tth2Q(tth,lambd)
+                d = tth2d(tth,lambd)
         if isinstance(lambd,float):
-            Q = tth2Q(tth,lambd)
-            d = tth2d(tth,lambd)
             self.statusbar.showMessage('2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Intensity: {:8.1f}  |'.format(tth,Q,d,I))
         else:    
             self.statusbar.showMessage('2θ: {:6.2f}  |  Intensity: {:8.1f}  |'.format(tth,I))
@@ -471,16 +488,20 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                             'Frederik H Gjørup<br/>',
                             'Department of Chemistry<br/>',
                             'Aarhus University<br/>',
-                            'May 2021',
+                            'November 2021',
                         '</p>',
                 '</html>']
         QtWidgets.QMessageBox.about(self,'About',''.join(about))
     
     def setManualWavelength(self):
         index = self.dataset_index
-        lambd = us.default_wavelength
-        if isinstance(self.lambd[index],float):
-            lambd = self.lambd[index]
+        l = self.lambd
+        for i in range(len(l)):
+            lambd = l[(index+i)%len(l)]
+            if isinstance(lambd,float):
+                break
+            else:
+                lambd = us.default_wavelength
         value, ok = QtWidgets.QInputDialog.getDouble(self,                         # parent
                                                      'Wavelength',                 # titel
                                                      'Set manual wavelength (Å):', # label
@@ -491,7 +512,32 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         if ok:
             self.lambd[index] = value
             self.showCurrentWavelength()
-            
+        return ok
+    
+    def toggleQ(self):
+        index = self.dataset_index
+        x = self.tth[index]
+        lambd = self.lambd[index]
+        if self.actionToggle_Q.isChecked():
+            self.miw.setXLabel('Q (Å<sup>-1</sup>)')
+            if isinstance(lambd,float):
+                x = tth2Q(x,lambd)
+            else:
+                if self.setManualWavelength():
+                    lambd = self.lambd[index]
+                    x = tth2Q(x,lambd)
+                else:
+                    self.actionToggle_Q.setChecked(False)
+                    self.miw.setXLabel('2θ (°)')
+        else:
+            self.miw.setXLabel('2θ (°)')
+        ticks = generateTicks(x)
+        for i in range(3):
+            self.miw.setTicks(i,ticks)    
+        self.updatePatternPlot(index)
+        self.autoRangeAll()
+        
+        
     def updatePatternPlot(self,index=0):
         if not isinstance(index,int):
             index=0
@@ -506,28 +552,34 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             param = self.param[index]
             for key in param:
                 if key=='Temperature (°C)':
-                    temp = ' - Temperature: {:.0f} °C'.format(param[key][-(pos+1)])
+                    temp = ' - Temperature: {:.0f} °C'.format(param[key][(pos)])
                 elif key=='Temperature (K)':
-                    temp = ' - Temperature: {:.0f} K'.format(param[key][-(pos+1)])
-            fname = os.path.splitext(os.path.basename(files[-(pos+1)]))[0]
+                    temp = ' - Temperature: {:.0f} K'.format(param[key][(pos)])
+            fname = os.path.splitext(os.path.basename(files[(pos)]))[0]
             title = '{}{}'.format(fname,temp)
             self.ppw.setTitle(title)
         scale = self.scale_pat
-        obs, calc, res = [im[i,:,pos] for i in range(3)]
+        obs, calc, res = [im[i,:,-(pos+1)] for i in range(3)]
         if self.subtract_bgr_pat:
-            bgr = self.bgr[index][:,pos]
+            bgr = self.bgr[index][:,-(pos+1)]
             obs, calc, = obs-bgr, calc-bgr
-        tth = self.tth[index]
-        self.ppw.setObsData(tth,scaleArray(obs,scale))
-        self.ppw.setCalData(tth,scaleArray(calc,scale))
-        self.ppw.setResData(tth,scaleArray(res,scale,retain_sign=True))
+        x = self.tth[index]
+        lambd = self.lambd[index]
+        if self.actionToggle_Q.isChecked() and isinstance(lambd,float):
+            x = tth2Q(x, lambd)
+            self.ppw.setLabel('bottom','Q (Å<sup>-1</sup>)')
+        else:
+            self.ppw.setLabel('bottom','2θ (°)')
+        self.ppw.setObsData(x,scaleArray(obs,scale))
+        self.ppw.setCalData(x,scaleArray(calc,scale))
+        self.ppw.setResData(x,scaleArray(res,scale,retain_sign=True))
         sub_plots = self.sub_plots[index]
         active = self.getSubplotActions()
         for key in active:
-            y = sub_plots[key][-(pos+1),:]
+            y = sub_plots[key][(pos),:]
             if self.subtract_bgr_pat:
                 y = y-bgr
-            self.ppw.setSubplotData(key,tth,scaleArray(y,scale))
+            self.ppw.setSubplotData(key,x,scaleArray(y,scale))
         
         self.parw.updateVline(im.shape[2]-h_val+0.5)
     
@@ -682,44 +734,27 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         index = self.dataset_index
         im = im.astype(dtype='float32')
         im = np.rot90(im,k=1,axes=(1,2))
-        im = np.fliplr(im)#,k=-1,axes=(1,2))
-        #Generate ticks for images
-        ticks = self.generateTicks(tth)
+        # generate ticks for images
+        lambd = self.lambd[index]
+        if self.actionToggle_Q.isChecked() and isinstance(lambd,float):
+            x = tth2Q(tth,lambd)
+            self.miw.setXLabel('Q (Å<sup>-1</sup>)')
+        else:
+            x = tth
+            self.actionToggle_Q.setChecked(False)
+            self.miw.setXLabel('2θ (°)')
+        ticks = generateTicks(x)
         scale = self.scale_surf
         bgr = self.bgr[index]
         for i in range(2):
             if self.subtract_bgr:
-                im[i] -= bgr
+                im[i] -= np.rot90(bgr,k=1)
+                #im[i] -= bgr
             self.miw.setData(i,scaleArray(im[i],scale))
             self.miw.setTicks(i,ticks)
         self.miw.setData(2,scaleArray(im[2],scale,retain_sign=True))
         self.miw.setTicks(2,ticks)
         self.miw.autoRangeHistograms()
-        
-    def generateTicks(self,tth):
-        """Generate ticks assuming equidistant steps.
-        return:
-                [[ (majorTickValue1, majorTickString1), (majorTickValue2, majorTickString2), ... ],
-            [ (minorTickValue1, minorTickString1), (minorTickValue2, minorTickString2), ... ]]
-        """
-        if tth[-1]-tth[0] < 15:
-            scale = 1
-        elif tth[-1]-tth[0] < 30:
-            scale = 2
-        elif tth[-1]-tth[0] < 60:
-            scale = 5
-        else:
-            scale = 10
-        mn = np.ceil(tth[0]/scale)*scale
-        mx = np.floor(tth[-1]/scale)*scale
-        first = np.argmin(np.abs(tth-mn))
-        last = np.argmin(np.abs(tth-mx))
-        step = scale/np.mean(np.diff(tth))
-        val = np.arange(first-step,last+step,step)
-        minor = np.linspace(val[0],val[-1]+step,(len(val))*10+1)
-        s = np.arange(mn-scale,mx+scale*2,scale)
-        ticks = [[(v,'{:.0f}'.format(s[i])) for i, v in enumerate(val)],[(m,'') for m in minor]]
-        return ticks
     
     def initScale(self):
         for ac in self.menuScaling_surf.actions():

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 26/11/2021
+Last update: 30/11/2021
 Frederik H. Gjørup
 """
 import os
 try:
-    from PyQt5 import QtCore
+    from PyQt5 import QtCore, Qt
     import pyqtgraph as pg
     import numpy as np
     from matplotlib import cm
@@ -31,11 +31,22 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
     
     sigHLineDragged = QtCore.pyqtSignal(object)
     sigVLineDragged = QtCore.pyqtSignal(object)
+    sigDoubleClicked = QtCore.pyqtSignal(object)
     
     def __init__(self,n_images=1,labels=()):
         pg.GraphicsLayoutWidget.__init__(self)
-        self._setLabels(labels)
         self.setBackground((25,25,25))
+        
+        # row 0
+        self.nextCol()
+        [self.addLabel(l,color='w') for l in labels]
+        self.nextRow()
+        
+        # row 1
+        #Add left y-axis
+        yax = pg.AxisItem('left',text='Pattern (#)' , maxTickLength=5)
+        yax.showLabel(True)
+        self.addItem(yax)
         #Create imageItems
         self.images = [pg.ImageItem(border='w', axisOrder='row-major') for i in range(n_images)]     
         #Create histograms
@@ -44,11 +55,13 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         self.hist_2 = pg.HistogramLUTItem()
         self.hist_2.gradient.setColorMap(convertColormapMPtoPG(cm.get_cmap(us.default_divergent_colormap)))
         # Create a ViewBox for each image -1
-        self.views = [self.addViewBox(invertY=True,name=labels[i]) for i in range(n_images-1)]
+        self.views = [self.addViewBox(invertY=False,name=labels[i]) for i in range(n_images-1)]
+        # Link y-axis to the first viewBox
+        yax.linkToView(self.views[0])
         #Add first histogram
         self.addItem(self.hist)
         #Add last viewbox
-        self.views.append(self.addViewBox(invertY=True,name=labels[-2]))
+        self.views.append(self.addViewBox(invertY=False,name=labels[-2]))
         #Add last histogram 
         self.addItem(self.hist_2)
         #Add horizontal lines
@@ -56,7 +69,8 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         #Add vertical lines
         self.vlines = [pg.InfiniteLine(pos=1,angle=90, movable=True, pen='g') for i in range(n_images)]
         #Create axes
-        self.axes = [pg.AxisItem('bottom', maxTickLength=5,linkView=v) for v in self.views]
+        self.axes = [pg.AxisItem('bottom',text='2theta' , maxTickLength=5,linkView=v) for v in self.views]
+        self.setXLabel('2θ (°)',35)
         for i,v in enumerate(self.views):
             v.setAspectLocked(False)
             v.addItem(self.images[i])
@@ -83,6 +97,9 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             self.vlines[i].sigDragged.connect(self._update_vline)       
             
         self.nextRow()
+        
+        # row 2
+        self.nextCol() # skip coloumn for y-axis
         for i,v in enumerate(self.views):
             #Add axis
             self.addItem(self.axes[i])
@@ -102,7 +119,7 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         self.hist_2.setImageItem(self.images[-1])
         self.hist_2.sigLevelsChanged.connect(self._setDivergentLevels)
         
-    def _update_hline(self):
+    def _update_hline(self,suppress=False):
         v_new = [v.value() for v in self.hlines if not round(v.value(),2) in self._hv_old]
         for hl in self.hlines:
             try:
@@ -110,9 +127,10 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             except IndexError:
                 pass
         self._hv_old = [round(v.value(),2) for v in self.hlines]
-        self.sigHLineDragged.emit(self)
+        if not suppress == True:
+            self.sigHLineDragged.emit(self)
 
-    def _update_vline(self):
+    def _update_vline(self,suppress=False):
         v_new = [v.value() for v in self.vlines if not round(v.value(),2) in self._vv_old]
         for vl in self.vlines:
             try:
@@ -120,7 +138,8 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
             except IndexError:
                 pass
         self._vv_old = [round(v.value(),2) for v in self.vlines]
-        self.sigVLineDragged.emit(self)
+        if not suppress == True:
+            self.sigVLineDragged.emit(self)
 
     def _setSharedLevels(self):
         levels = self.images[0].getLevels()
@@ -177,12 +196,6 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         ]
         """
         self.axes[index].setTicks(ticks)
-          
-    def _setLabels(self,labels=[]):
-        for label in labels:
-            self.addLabel(label,color='w')
-        if len(labels)>0:
-            self.nextRow()
     
     def _getLabel(self,col):
         """return LabelItem of specified coloumn"""
@@ -191,6 +204,11 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
     def setLabel(self, col,text):
         label = self._getLabel(col)
         label.setText(text)
+    
+    def setXLabel(self,text,height=35):
+        for i in range(3):
+            self.axes[i].setLabel(text)
+            self.axes[i].setHeight(height)
         
     def getHorizontalLineVal(self):
         return self.hlines[0].value()
@@ -223,6 +241,20 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         if not isinstance(yRange,type(None)):
             self.views[0].setRange(yRange)
             
+    def mouseDoubleClickEvent(self,event):
+        # https://doc.qt.io/qt-5/qt.html#MouseButton-enum
+        
+        if event.button() == 1: # left mouse button
+            pos = event.pos()
+            for i, vb in enumerate(self.views):
+                vpos = vb.mapSceneToView(pos)
+                if vb.viewRect().contains(vpos):
+                    x,y = vpos.x(), vpos.y()
+                    self.vlines[0].setValue(x)
+                    self.hlines[0].setValue(y)
+                    self._update_vline(suppress=True)
+                    self._update_hline(suppress=True)
+                    self.sigDoubleClicked.emit(self)
             
 #######################################################################################################################
 
@@ -293,6 +325,10 @@ class PlotPatternWidget(pg.PlotWidget):
     def setResData(self,x,y):
          self.pres.setData(x,y)
 
+
+
+                    
+                    
 #######################################################################################################################
 
 class PlotSliceWidget(pg.PlotWidget):
@@ -534,6 +570,16 @@ class PlotParametersWidget(pg.PlotWidget):
             symbolSize = 4
         return label, pen, color, symbol, symbolSize
             
-
+    def mouseDoubleClickEvent(self,event):
+        # https://doc.qt.io/qt-5/qt.html#MouseButton-enum
+        
+        if event.button() == 1: # left mouse button
+            pos = event.pos()
+            vb = self.getViewBox()
+            vpos = vb.mapSceneToView(pos)
+            x = vpos.x()
+            self.updateVline(x)
+            self._update_vline()
+ 
 
 
