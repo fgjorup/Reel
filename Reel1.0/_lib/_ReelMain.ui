@@ -262,6 +262,7 @@
    <addaction name="actionUpdate_2"/>
    <addaction name="actionAuto_range_2"/>
    <addaction name="actionSet_wavelength_2"/>
+   <addaction name="actionToggle_Q"/>
    <addaction name="actionOpen_files_2"/>
    <addaction name="actionAdd_files_2"/>
    <addaction name="actionRemove_dataset_2"/>
@@ -722,6 +723,27 @@
    </property>
    <property name="shortcut">
     <string>Space</string>
+   </property>
+  </action>
+  <action name="actionToggle_Q">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/Q.png</normaloff>:/icons/Q.png</iconset>
+   </property>
+   <property name="text">
+    <string>Q</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle Q (Å&lt;span style=&quot; vertical-align:super;&quot;&gt;-1&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="statusTip">
+    <string>Toggle Q (Å-1)</string>
    </property>
   </action>
  </widget>
