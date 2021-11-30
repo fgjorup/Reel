@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Last update: 05/05/2021
+Last update: 30/11/2021
 Frederik H. Gjørup
 """
 import os
@@ -18,6 +18,14 @@ def roundup(x):
 def tth2Q(tth,lambd):    
     Q = 4*np.pi*np.sin(np.radians(tth/2))/lambd
     return(Q)
+
+def Q2tth(Q,lambd):
+    tth = 2*np.degrees(np.arcsin(Q/(4*np.pi)))*lambd
+    return(tth)
+
+def Q2d(Q,lambd):
+    d = 2*np.pi/Q
+    return d
 
 def d2tth(d,lambd):
     tth = np.degrees(np.arcsin(lambd/(2*d)))*2
@@ -113,5 +121,40 @@ def gridInterpolation(r,I,eta,x_corr,y_corr,dist,length,xi=None,yi=None,mask=Non
     return xi, yi, zi, mask
 
 
+def generateTicks(x):
+    
+    rng = x[-1]-x[0] # range of the x-values
+    # determine the appropriate increment
+    if rng < 8:
+        incr = 0.5
+    elif rng < 15:
+        incr = 1.0
+    elif rng < 30:
+        incr = 2.0
+    elif rng < 60:
+        incr = 5.0
+    elif rng < 120:
+        incr = 10.0
+    else:
+        incr = 15.0
 
+    # find the approximate index of the major ticks
+    major = np.where(np.diff(x%incr)<0)[0]+1
+    if x[0]<=0.001:
+        major = np.insert(major,0,0)
+        first = 0.0
+    else:
+        first = np.mean([x[major[0]-1],x[major[0]]])
+    # fill in equidistant minor ticks between each major
+    minor = np.array([np.linspace(major[i],major[i+1],9) for i in range(major.shape[0]-1)]).flatten()
+    # generate labels for each tick
+    if rng < 10:
+        s = [str(round(first+i*incr,1)) for i in range(major.shape[0])]
+    else:
+        s = [str(round(first+i*incr)) for i in range(major.shape[0])]
+    # generate list of lists of tuples
+    # [[ (majorTickValue1, majorTickString1), (majorTickValue2, majorTickString2), ... ],
+    #  [ (minorTickValue1, minorTickString1), (minorTickValue2, minorTickString2), ... ]]
+    ticks = [[(v,s[i]) for i, v in enumerate(major)],[(m,'') for m in minor]]
+    return ticks
 
