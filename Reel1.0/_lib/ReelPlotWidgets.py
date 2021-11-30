@@ -5,7 +5,7 @@ Frederik H. Gjørup
 """
 import os
 try:
-    from PyQt5 import QtCore, Qt
+    from PyQt5 import QtCore, QtGui
     import pyqtgraph as pg
     import numpy as np
     from matplotlib import cm
@@ -48,7 +48,11 @@ class MultiImageWidget(pg.GraphicsLayoutWidget):
         yax.showLabel(True)
         self.addItem(yax)
         #Create imageItems
-        self.images = [pg.ImageItem(border='w', axisOrder='row-major') for i in range(n_images)]     
+        self.images = [pg.ImageItem(border='w', axisOrder='row-major') for i in range(n_images)]
+        # transform image origin
+        tr = QtGui.QTransform()
+        tr.translate(0,0.5)
+        [im.setTransform(tr) for im in self.images]
         #Create histograms
         self.hist = pg.HistogramLUTItem()
         self.hist.gradient.setColorMap(convertColormapMPtoPG(cm.get_cmap(us.default_linear_colormap)))

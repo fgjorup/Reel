@@ -210,8 +210,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         h_pos = self.miw.getHorizontalLineVal()
         h_pos = np.floor(h_pos)+increment
         h_pos = np.clip(h_pos,0,im.shape[2]-1)
-        [self.miw.hlines[i].setValue(h_pos+0.5) for i in range(3)]
-        self.parw.updateVline(im.shape[2]-h_pos+0.5)
+        [self.miw.hlines[i].setValue(h_pos) for i in range(3)]
+        #self.parw.updateVline(h_pos)
         self.updatePatternPlot(0)
     
     def moveSliceCursor(self,increment=0):
@@ -271,7 +271,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         [self.miw.hlines[i].setValue(h_pos) for i in range(3)]
         self.miw.setScale(scale)
         self.miw.setViewRange(vrect)
-        self.parw.updateVline(im.shape[2]-h_pos+0.5)
+        self.parw.updateVline(h_pos+0.5)
         self.showCurrentWavelength()
         
     
@@ -404,14 +404,14 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
             Q = tth2Q(tth,lambd)
             d = tth2d(tth,lambd)
             if self.dev_from_mean[index]:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(j,tth,Q,d,obs,calc,res))
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(j+1,tth,Q,d,obs,calc,res))
             else:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(j,tth,Q,d,obs,calc,res))
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(j+1,tth,Q,d,obs,calc,res))
         else:
             if self.dev_from_mean[index]:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(j,tth,obs,calc,res))
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Mean: {:8.1f}  |  Deviation from mean: {:8.1f} % |'.format(j+1,tth,obs,calc,res))
             else:
-                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(j,tth,obs,calc,res))
+                self.statusbar.showMessage('Pattern: {:4d}  |  2θ: {:6.2f} °  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(j+1,tth,obs,calc,res))
     
         #     self.statusbar.showMessage('Slice: {:4d}  |  2θ: {:6.2f} °  |  Q: {:6.3f} Å⁻¹ |  d: {:6.3f} Å  |  Observed: {:8.1f}  |  Calculated: {:8.1f}  |  Residual: {:8.1f}  |'.format(frames-j,tth,Q,d,obs,calc,res))
         # else:
@@ -546,7 +546,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         index = self.dataset_index
         im = self.im[index]
         files = self.files[index]
-        pos = int(np.clip(np.floor(h_val),0,im.shape[2]-1))
+        pos = np.round(h_val)-1
+        pos = int(np.clip(pos,0,im.shape[2]-1))
         temp = ''
         if not files[0] == '':
             param = self.param[index]
@@ -581,7 +582,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
                 y = y-bgr
             self.ppw.setSubplotData(key,x,scaleArray(y,scale))
         
-        self.parw.updateVline(im.shape[2]-h_val+0.5)
+        self.parw.updateVline(h_val)
     
     def updateSlicePlot(self,index=1):
         if not isinstance(index,int):
@@ -820,10 +821,8 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         self.updateSlicePlot(index)
     
     def updateHLine(self):
-        index = self.dataset_index
-        im = self.im[index]
-        val = im.shape[2]-self.parw.vline.value()
-        self.miw.hlines[0].setValue(val+0.5)
+        val = self.parw.vline.value()
+        self.miw.hlines[0].setValue(val)
         self.miw._update_hline()
         
     def removeSubplots(self):
@@ -953,7 +952,7 @@ class mainWindow(QtWidgets.QMainWindow, uic.loadUiType(os.path.join(os.path.dirn
         progress = self.progressWindow("Reading files", "Cancel", 0, len(files),'Refinement Evaluator',QtGui.QIcon(":icons/Main.png"))
         im = [[],[],[]]
         bgr, temp, lambd, filenames, comments = [], [], [], [], []
-        dic, sub_plots, param = {}, {}, {'R_p':[]}
+        _, sub_plots, param = {}, {}, {'R_p':[]}
             
         for i, file in enumerate(files):
             progress.setValue(i)
