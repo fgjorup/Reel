@@ -291,9 +291,9 @@ class PlotPatternWidget(pg.PlotWidget):
         self.legend = self.addLegend()
         self.setLimits(xMin=0, xMax=180)
         #Add plots
-        self.pobs = self.plot(x=[0],y=[0], name='Observed', pen=None, symbol='o', symbolPen='r', symbolSize=2)
-        self.pcal = self.plot(x=[0],y=[0], name='Calculated')
-        self.pres = self.plot(x=[0],y=[0], name='Residual', pen=pg.mkPen(color=(0,0,255), width=0.5))
+        self.pobs = self.plot(x=[0],y=[0], name='Observed', pen=None, symbol='o', symbolPen='r', symbolSize=2, connect ='finite')
+        self.pcal = self.plot(x=[0],y=[0], name='Calculated', connect ='finite')
+        self.pres = self.plot(x=[0],y=[0], name='Residual', pen=pg.mkPen(color=(0,0,255), width=0.5), connect ='finite')
         
         self.psub = {}
     
@@ -324,7 +324,7 @@ class PlotPatternWidget(pg.PlotWidget):
             self._getColors(exclude=('red','blue','gray'))
             color = self.colors.pop(0)
         pen = pg.mkPen(color=color, style=QtCore.Qt.DashLine)
-        self.psub[key]=self.plot(x=[0],y=[0], name=key, pen=pen)
+        self.psub[key]=self.plot(x=[0],y=[0], name=key, pen=pen, connect ='finite')
 
     def removeSubplots(self):
         for item in self.psub.values():
@@ -338,9 +338,6 @@ class PlotPatternWidget(pg.PlotWidget):
          self.pobs.setData(x,y)
     
     def setCalData(self,x,y):
-        #Remove NAN values 
-        x = x[~np.isnan(y)]
-        y = y[~np.isnan(y)]
         self.pcal.setData(x,y)    
         
     def setResData(self,x,y):

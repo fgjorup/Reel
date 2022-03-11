@@ -19,6 +19,8 @@ def readXYY(fname):
            header.append(line)
         parameters = f.readline().split()
         data = np.loadtxt(f,dtype='float32')
+        # set columns values to nan, when calculated is 0
+        data[:,2:][data[:,2]==0]=np.nan
     h = {'Filename':header[0]}
     comments = header.index('COMMENTS\n')
     h['Comments']=''.join(header[comments+1:-1])
